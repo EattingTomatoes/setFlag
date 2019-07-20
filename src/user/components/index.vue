@@ -4,8 +4,7 @@
             <h3>立Flag|这里可以放置一张小程序图片</h3>
         </div>
         <div class="panel_main">
-            <span class="btn-rule">规则</span>
-            <span class="btn-record">主播记录</span>
+            <span class="btn-record">规则</span>
             <div class="flag-title">
                 <h1>Flag内容<br>
                     今晚上不到王者不睡觉</h1>
@@ -17,6 +16,26 @@
                 <p v-if="isStart&&!isEnd">距结束还剩
                     <span>{{day}}</span> 天 <span>{{hours}}</span> 时 <span>{{minute}}</span> 分 <span>{{second}}</span> 秒</p>
                 <p v-if="isEnd" style="color:red">活动已结束</p>
+            </div>
+            <button v-on:click="sendRequest">测试</button>
+            <button v-on:click="takeApi">API调用接口</button>
+        </div>
+        <div class="vote">
+            <div class="red" id="red">
+                <p>这波我必须支持</p>
+                <div class="redhand"></div>
+                <div class="redbar" id="red_bar">
+                    <span></span>
+                    <p id="red_num"></p>
+                </div>
+            </div>
+            <div class="blue" id="blue">
+                <p style="text-align:right">看看就好</p>
+                <div class="bluehand"></div>
+                <div class="bluebar" id="blue_bar">
+                    <span></span>
+                    <p id="blue_num"></p>
+                </div>
             </div>
         </div>
     </div>
@@ -117,6 +136,24 @@
                     this.minute = curTime.split(':')[0];
                     this.second = curTime.split(':')[0];
                 }
+            },
+
+            sendRequest:function(){
+                console.log("enter");
+                util.request('https://jsonplaceholder.typicode.com/posts',{methods:'GET'})
+                    .then(res=>{
+                        console.log(res)
+                    }).catch(error=>{
+                        console.log(error.message+"---"+error.code)
+                })
+            },
+            
+            takeApi:function () {
+                util.request('https://apiext.huya.com',{methods:'GET',data:{
+                        authorName: 'qq_9369ygake00f',
+                        appId: 'ef3d40e71fc01b6a',
+                        appSecret: '71e58c47052b6709c80df64771bb351d'
+                    }})
             }
         }
     }
@@ -177,5 +214,16 @@
             }
         }
     }
+
+    .vote{width:288px; height:300px; margin:40px auto;position:relative}
+    .red{position:absolute; left:0; top:64px; height:80px;}
+    .blue{position:absolute; right:0; top:64px; height:80px;}
+    .red p,.blue p{line-height:22px}
+    .redbar{position:absolute; left:42px; margin-top:8px;}
+    .bluebar{position:absolute; right:42px; margin-top:8px; }
+    .redbar span{display:block; height:6px; background:red; width:100%;border-radius:4px;}
+    .bluebar span{display:block; height:6px; background:#09f; width:100%;border-radius:4px; position:absolute; right:0}
+    .redbar p{line-height:20px; color:red;}
+    .bluebar p{line-height:20px; color:#09f; text-align:right; margin-top:6px}
 
 </style>
