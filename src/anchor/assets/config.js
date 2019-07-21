@@ -5,7 +5,7 @@
     maxSettingActionTime: 50,
     defaultActionTime: 3,
     extUuid: '',
-    baseUrl: isDebug ? '' : '',
+    baseUrl: isDebug ? '' : 'weixiaoyuan.xyz',
     port: isDebug ? 17050 : 80,
     settingStateMap: {
         unstart: 0,

@@ -2,7 +2,6 @@
     <div id="index">
         <i class="title"></i>
         <div class="form-data">
-            <h4>主播设置</h4>
             <div>
                 <div>
                     <div class="flag-content">
@@ -34,51 +33,72 @@
 
                 <div>
                     <div>
-                        <div>奖金进度</div>
-                        <option-setting></option-setting>
+                        <label>奖金进度</label>
+                        <div class="options-setting">
+                            <div>
+                                <ul>
+                                    <li class="bd-callout bd-callout-warning" v-for="(option, index) in choosedOptions" v-bind:key="option.id">
+                                        <img @click="options.splice(index,1)" class="option-icon" src="./../assets/img/reduce.png"/>
+                                        投票数达到{{option.votesCount}}票时,送出{{option.prizeType}}共{{option.prizeCount}}份
+                                    </li>
+                                </ul>
+                                <div @click="showAddOptionsDialog" class="add-btn">+添加选项</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="other-options">
                     <div>
-                        <label>其他选项</label>
+                        <label>其他选项(可选)</label>
                     </div>
                     <div class="form-check">
-                        <input type="checkbox"/>开启"最后一分钟"加速模式.
+                        <input v-model="otherOptions" type="checkbox" value="开启'最后一分钟'加速模式"/>开启"最后一分钟"加速模式.
                     </div>
                     <div class="form-check">
-                        <input type="checkbox">开启主播口令模式.
+                        <input v-model="otherOptions" type="checkbox" value="开启主播口令模式">开启主播口令模式.
                     </div>
                     <div class="form-check">
-                        <input type="checkbox">开启随机送票模式.
+                        <input v-model="otherOptions" type="checkbox" value="开启随机送票模式">开启随机送票模式.
                     </div>
                 </div>
             </div>
 
             <div class="btn_wrapper">
-                <button type="button" class="save">保存</button>
-                <button type="button" class="start">启动</button>
+                <button @click="saveSettingConfig" type="button" class="save">保存</button>
+                <button @click="getAnchorMsg" type="button" class="start">启动</button>
             </div>
 
-            <!--<div id="preview">-->
-                <!--<h3>浏览</h3>-->
-                <!--<p>{{limitedTime}}</p>-->
-                <!--<p>{{flagContent}}</p>-->
-                <!--<p>{{supportOption}}</p>-->
-                <!--<p>{{objectOption}}</p>-->
-                <!--<p>{{isSettingSelf}}</p>-->
-            <!--</div>-->
+            <!--<button type="button" @click="testSdk">测试</button>-->
 
+            <div id="preview">
+                <h3>浏览</h3>
+                <p>{{limitedTime}}</p>
+                <p>{{flagContent}}</p>
+                <p>{{supportOption}}</p>
+                <p>{{objectOption}}</p>
+                <p v-for="choosedOption in choosedOptions">{{choosedOption}}</p>
+                <p v-for="otherOption in otherOptions">{{otherOption}}</p>
+            </div>
         </div>
+
+        <add-options-dialog
+            :choosedOptionList="choosedOptions">
+        </add-options-dialog>
+        <toast></toast>
     </div>
 </template>
 
 <script>
     import ARadioGroup from "ant-design-vue/es/radio/Group";
     import OptionSetting from "./optionSetting";
+    import util from "./../assets/util"
+    import eventBus from "../assets/eventBus"
+    import AddOptionsDialog from "./addOptionsDialog";
+    import Toast from "./toast";
 
     export default {
         name: 'Index',
-        components: {OptionSetting, ARadioGroup},
+        components: {Toast, AddOptionsDialog, OptionSetting, ARadioGroup},
         props: {
             msg: String
         },
@@ -88,8 +108,91 @@
                 supportOption: '',
                 objectOption: '',
                 limitedTime:'',
+                choosedOptions:[],
+                otherOptions:[],
+                nextOptionsId:2,
                 isSettingSelf: true
             }
+        },
+        created(){
+            hyExt.onLoad(()=>{
+                this.getLastResult();
+                this.registerResultListener();
+
+                eventBus.$on('saveOption',({votesCount, prizeType, prizeCount}) => {
+                    console.log('传过来的内容为',votesCount,prizeType,prizeCount);
+                    var length = this.choosedOptions.length;
+
+                    this.choosedOptions.push({
+                        optionId:this.nextOptionsId++,
+                        votesCount:votesCount,
+                        prizeType:prizeType,
+                        prizeCount:prizeCount
+                    });
+
+                    var compare = function (prop) {
+                        return function (obj1, obj2) {
+                            var val1 = obj1[prop];
+                            var val2 = obj2[prop];
+                            if (!isNaN(Number(val1)) && !isNaN(Number(val2))) {
+                                val1 = Number(val1);
+                                val2 = Number(val2);
+                            }
+                            if (val1 < val2) {return -1;}
+                            else if (val1 > val2) {return 1;}
+                            return 0;
+                        }
+                    };
+                    this.choosedOptions.sort(compare('votesCount'));
+
+                })
+            });
+
+        },
+        methods:{
+            getLastResult(){
+
+            },
+            showAddOptionsDialog(){
+                if(this.choosedOptions.length >= 5){
+                    util.showToast('只能设置五个哦');
+                    return;
+                }
+                eventBus.$emit('showDialog');
+            },
+
+            registerResultListener(){
+
+            },
+
+            saveSettingConfig(){
+                if(!(this.flagContent&&this.limitedTime&&this.choosedOptions.length)){
+                    util.showToast('请填写完整配置哈~');
+                    return;
+                }
+
+                this.choosedOptions = this.choosedOptions.map(item => {
+                    return {
+                        votesCount: util.xssFilter(item.votesCount),
+                        prizeType: util.xssFilter(item.prizeType),
+                        prizeCount: item.prizeCount
+                    }
+                });
+
+                var submitValue = {
+                    flagContent: util.xssFilter(this.flagContent),
+                    limitedTime: this.limitedTime,
+                    choosedOptions: this.choosedOptions,
+                    otherOptions: this.choosedOptions
+                };
+
+                console.log(submitValue)
+            },
+
+            getAnchorMsg(){
+
+            }
+
         }
     }
 </script>
@@ -119,13 +222,15 @@
         max-width: 300px;
         border-radius: 5px;
         padding: 12px 10px;
-        background-color: rgba(255, 255, 255, 0.5);
+        background-color: rgba(255, 255, 255, 0.4);
         margin-bottom: 20px;
     }
 
     label {
         display: block;
         margin: 20px 0 10px;
+        font-size: 16px;
+        font-weight: 600;
     }
 
     .vote-options {
@@ -176,6 +281,46 @@
             }
         }
 
+    }
+
+    .add-btn{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        border-radius: 4px;
+        background-color: white;
+        padding: 6px;
+        width:90%;
+    }
+
+    .bd-callout{
+        padding: 0.55rem;
+        margin-top: 1.25rem;
+        margin-bottom: 1.25rem;
+        border: 1px solid #eee;
+        border-left-width: .25rem;
+        border-radius: .25rem;
+        font-size: 14px;
+        list-style-type: none;
+        margin-left: 0;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        vertical-align: middle;
+        letter-spacing: 1px;
+    }
+
+    .bd-callout-warning{
+        border-left-color: #f0ad4e;
+
+    }
+
+    .option-icon{
+        height: 22px;
+        width: 22px;
+        margin-right: 10px;
     }
 
     .form-control {

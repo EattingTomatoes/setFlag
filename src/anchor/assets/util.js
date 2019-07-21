@@ -4,13 +4,13 @@ import eventBus from './eventBus';
 const { extUuid, baseUrl, port } = CONFIG;
 
 var util = {
-    request({service, method = 'GET', param = {}}) {
+    hy_request({service, method = 'GET', param = {}}) {
         var requestParam = {
             host: baseUrl,
             param: {extUuid, ...param},
             port: port,
             httpMethod: method,
-            path: `/speedRace/${service}`
+            path: `/vent/api/v1/${service}`
         }
 
         console.log('请求', requestParam);
@@ -53,6 +53,14 @@ var util = {
                 .replace(/\"/g, '&quot;');
 
         return msg;        
+    },
+    checkNum: function (str) {
+        var reg = '^\\+?[1-9][0-9]*$';
+        var pattern = new RegExp(reg);
+        if(pattern.test(str)){
+            return true
+        }
+        return false
     }
     
 }

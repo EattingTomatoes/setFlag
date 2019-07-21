@@ -5,7 +5,7 @@ var config = {
     maxSettingActionTime: 8,
     defaultActionTime: 3,
     extUuid: '',
-    baseUrl: isDebug ? 'https://jsonplaceholder.typicode.com/' : '',
+    baseUrl: isDebug ? '' : 'weixiaoyuan.xyz',
     port: isDebug ? 17050 : 80,
     settingStateMap: {
         lastResult: 0,

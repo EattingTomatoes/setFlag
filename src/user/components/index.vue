@@ -140,7 +140,7 @@
 
             sendRequest:function(){
                 console.log("enter");
-                util.request('https://jsonplaceholder.typicode.com/posts',{methods:'GET'})
+                util.request('https://www.weixiaoyuan.xyz/api/v1/weibo?start=0&count=10:80',{methods:'GET'})
                     .then(res=>{
                         console.log(res)
                     }).catch(error=>{
@@ -149,11 +149,11 @@
             },
             
             takeApi:function () {
-                util.request('https://apiext.huya.com',{methods:'GET',data:{
-                        authorName: 'qq_9369ygake00f',
-                        appId: 'ef3d40e71fc01b6a',
-                        appSecret: '71e58c47052b6709c80df64771bb351d'
-                    }})
+                hyExt.context.getLiveInfo().then(liveInfo => {
+                    console.log('liveInfo', liveInfo)
+                }).catch(err => {
+                    console.log('get liveInfo failed', err)
+                });
             }
         }
     }
