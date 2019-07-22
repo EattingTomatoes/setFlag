@@ -6,11 +6,12 @@ const { extUuid, baseUrl, port } = CONFIG;
 var util = {
     hy_request({service, method = 'GET', param = {}}) {
         var requestParam = {
+            header:{'x-header': 'foo'},
             host: baseUrl,
             param: {extUuid, ...param},
             port: port,
             httpMethod: method,
-            path: `/vent/api/v1/${service}`
+            path: `/api/hysetflag/${service}`
         }
 
         console.log('请求', requestParam);
@@ -20,7 +21,6 @@ var util = {
             .then(({ res, msg, ebsResponse }) => {
                 if(res == 0) {
                     const { entity, statusCode, header } = ebsResponse;
-                    
                     if(statusCode != 200 || !entity) {
                         console.log('接口异常', res, msg, ebsResponse);
                     }

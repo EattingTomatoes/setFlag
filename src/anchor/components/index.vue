@@ -111,11 +111,13 @@
                 choosedOptions:[],
                 otherOptions:[],
                 nextOptionsId:2,
-                isSettingSelf: true
+                isSettingSelf: true,
+                anchorMsg:{}
             }
         },
         created(){
             hyExt.onLoad(()=>{
+                this.getAnchorMsg();
                 this.getLastResult();
                 this.registerResultListener();
 
@@ -153,6 +155,7 @@
             getLastResult(){
 
             },
+
             showAddOptionsDialog(){
                 if(this.choosedOptions.length >= 5){
                     util.showToast('只能设置五个哦');
@@ -165,7 +168,7 @@
 
             },
 
-            saveSettingConfig(){
+            saveSettingConfig: function(){
                 if(!(this.flagContent&&this.limitedTime&&this.choosedOptions.length)){
                     util.showToast('请填写完整配置哈~');
                     return;
@@ -186,11 +189,37 @@
                     otherOptions: this.choosedOptions
                 };
 
-                console.log(submitValue)
+                var that = this;
+                util.hy_request({
+                    service: 'saveConfig',
+                    method:'POST',
+                    param: {
+                        anchorMsg: JSON.stringify(that.anchorMsg),
+                        options: JSON.stringify(submitValue)
+                    }
+                }).then(res => {
+                    console.log(res)
+                        // if(res.status === 0 && res.data) {
+                        //     this.raceId = res.data.raceId;
+                        //     util.showToast('已成功保存');
+                        // }else{
+                        //     util.showToast(res.msg);
+                        // }
+                        //
+                        // console.log('保存结果', res);
+                });
             },
 
             getAnchorMsg(){
-
+                var that = this;
+                hyExt.context.getUserInfo().then(userInfo => {
+                    console.log('Youngso1',that.anchorMsg);
+                    that.anchorMsg = userInfo;
+                    console.log('Youngso2',that.anchorMsg);
+                    hyExt.logger.info('获取用户信息成功', userInfo.userNick)
+                }).catch(err => {
+                    hyExt.logger.warn('获取用户信息失败');
+                });
             }
 
         }

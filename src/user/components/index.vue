@@ -149,11 +149,20 @@
             },
             
             takeApi:function () {
-                hyExt.context.getLiveInfo().then(liveInfo => {
-                    console.log('liveInfo', liveInfo)
+                // hyExt.context.getLiveInfo().then(liveInfo => {
+                //     console.log('liveInfo', liveInfo)
+                // }).catch(err => {
+                //     console.log('get liveInfo failed', err)
+                // });
+                let msg = {};
+                hyExt.context.getUserInfo().then(userInfo => {
+                    msg = userInfo;
+                    console.log('Yonghu', msg)
                 }).catch(err => {
                     console.log('get liveInfo failed', err)
-                });
+                })
+
+                console.log('Yonghu', msg)
             }
         }
     }
