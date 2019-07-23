@@ -59,7 +59,7 @@
                 isStart: false,
                 isEnd: false,
                 curTimer: null,
-                time:[1553182780135,30,40],
+                time:[1562182780135,1563876930968,40],
                 day: '',
                 hours: '',
                 minute: '',
@@ -81,6 +81,9 @@
             }
         },
         created(){
+            hyExt.onLoad(() => {
+                this.registerListener();
+            });
             if(this.time){
                 clearInterval(this.curTimer);
                 this.initTime();
@@ -107,35 +110,24 @@
                     if(this.isStart && !this.isEnd){
                         if(that.time[1] - new Date().getTime() >0){
                             that.curTimer = setInterval(()=>{
-                                that.curTime = util.SecondToData(_this.time[0]);
+                                that.curTime = util.SecondToData(that.time[1]);
                                 that.initFormate(that.curTime);
                                 that.initFormate(that.curTime);
                             }, 1000)
+                        }
+                        else {
+                            clearInterval(that.curTimer);
                         }
                     } else if (!this.isStart){
-                        if(that.time[0] - new Date().getTime() > 0){
-                            that.curTimer = setInterval(()=>{
-                                that.curTime = util.SecondToData(that.time[0]);
-                                that.initFormate(that.curTime);
-                            }, 1000)
-                        }
+
                     }
                 }
             },
 
             initFormate(curTime){
-                if(curTime.indexOf('天')!=-1){
-                    let temp = curTime.split('天');
-                    this.day = temp[0];
-                    this.hours = temp[1].split(':')[0];
-                    this.minute = temp[1].split(':')[1];
-                    this.second = temp[1].split(':')[2];
-                }else {
-                    this.day = '00';
-                    this.hours = curTime.split(':')[0];
-                    this.minute = curTime.split(':')[0];
-                    this.second = curTime.split(':')[0];
-                }
+                this.hours = curTime.split(':')[0];
+                this.minute = curTime.split(':')[1];
+                this.second = curTime.split(':')[2];
             },
 
             sendRequest:function(){
@@ -148,21 +140,15 @@
                 })
             },
             
-            takeApi:function () {
-                // hyExt.context.getLiveInfo().then(liveInfo => {
-                //     console.log('liveInfo', liveInfo)
-                // }).catch(err => {
-                //     console.log('get liveInfo failed', err)
-                // });
-                let msg = {};
-                hyExt.context.getUserInfo().then(userInfo => {
-                    msg = userInfo;
-                    console.log('Yonghu', msg)
-                }).catch(err => {
-                    console.log('get liveInfo failed', err)
+            registerListener(){
+                hyExt.observer.on('foo', message => {
+                    hyExt.logger.info('收到小程序后台推送过来的消息', message);
+                    message = message + "rere";
                 })
+            },
 
-                console.log('Yonghu', msg)
+            takeApi(){
+
             }
         }
     }

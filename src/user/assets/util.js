@@ -86,35 +86,21 @@ var util = {
         if(time!=null && time!=""){
             //计算小于一小时
             if(time>60 && time<3600){
-                time = parseInt(time/60.0) + ":" + parseInt((parseFloat(time/60.0)
+                time = "0" + ":" + parseInt(time/60.0) + ":" + parseInt((parseFloat(time/60.0)
                     - parseInt(time/60.0)) * 60);
             }
             //计算大于一小时，小于一天
-            else if(time>=3600 && time<3600*24) {
+            else if(time>=3600 && time<=3600*24) {
                 time = parseInt(time / 3600.0) + ":" + parseInt((parseFloat(time / 3600.0) -
                     parseInt(time / 3600.0)) * 60) + ":" +
                     parseInt((parseFloat((parseFloat(time / 3600.0) - parseInt(time / 3600.0)) * 60) -
                         parseInt((parseFloat(time / 3600.0) - parseInt(time / 3600.0)) * 60)) * 60);
             }
-            else if(time>=3600*24){
-                time = parseInt(time / 3600.0 / 24) + "天" + parseInt((parseFloat(time / 3600.0 / 24) -
-                    parseInt(time / 3600.0 / 24)) * 24) + ":" + parseInt((parseFloat(time / 3600.0) -
-                    parseInt(time / 3600.0)) * 60) + ":" +
-                    parseInt((parseFloat((parseFloat(time / 3600.0) - parseInt(time / 3600.0)) * 60) -
-                        parseInt((parseFloat(time / 3600.0) - parseInt(time / 3600.0)) * 60)) * 60);
-            }
-            else{
-                time = parseInt(time);
-            }
         }
+
 
         let curtime = '';
-
-        if (time.indexOf('天') == -1) {
-            curtime = time.split(':');
-        } else {
-            curtime = time.split('天')[1].split(':');
-        }
+        curtime = time.split(':');
 
         let curArr = '';
         for (let a = 0; a < curtime.length; a++) {
@@ -127,15 +113,8 @@ var util = {
             } else {
                 curArr += item;
             }
-
         }
 
-        if (time.indexOf('天') != -1) {
-            curArr = time.split('天')[0] + '天' + curArr;
-            if (time.split('天')[0] < 10) {
-                curArr = '0' + curArr;
-            }
-        }
 
         return curArr;
     }

@@ -11,7 +11,7 @@ var util = {
             param: {extUuid, ...param},
             port: port,
             httpMethod: method,
-            path: `/api/hysetflag/${service}`
+            path: `/vent/api/hysetflag/${service}`
         }
 
         console.log('请求', requestParam);
@@ -61,8 +61,46 @@ var util = {
             return true
         }
         return false
+    },
+    SecondToData(msd){
+        let curTime = msd - new Date().getTime();
+        let time = curTime / 1000;
+        if(time!=null && time!=""){
+            //计算小于一小时
+            if(time<3600){
+                time = "0" + ":" + parseInt(time/60.0) + ":" + parseInt((parseFloat(time/60.0)
+                    - parseInt(time/60.0)) * 60);
+            }
+            //计算大于一小时，小于一天
+            else if(time>=3600 && time<=3600*24) {
+                time = parseInt(time / 3600.0) + ":" + parseInt((parseFloat(time / 3600.0) -
+                    parseInt(time / 3600.0)) * 60) + ":" +
+                    parseInt((parseFloat((parseFloat(time / 3600.0) - parseInt(time / 3600.0)) * 60) -
+                        parseInt((parseFloat(time / 3600.0) - parseInt(time / 3600.0)) * 60)) * 60);
+            }
+        }
+
+        let curtime = '';
+        console.log(time);
+        curtime = time.split(':');
+
+        let curArr = '';
+        for (let a = 0; a < curtime.length; a++) {
+            let item = curtime[a];
+            if (item < 10) {
+                item = '0' + item;
+            }
+            if (a < curtime.length - 1) {
+                curArr += item + ':';
+            } else {
+                curArr += item;
+            }
+        }
+
+
+        return curArr;
     }
     
-}
+};
 
 export default util;

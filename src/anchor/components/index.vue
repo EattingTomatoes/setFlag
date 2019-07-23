@@ -1,21 +1,37 @@
 <template>
     <div id="index">
         <i class="title"></i>
-        <div class="form-data">
+        <div v-if="showUnstartPanel" class="form-data">
             <div>
                 <div>
                     <div class="flag-content">
                         <label>Flag内容</label>
                         <input type="text" v-model="flagContent" class="form-control"/>
                     </div>
-                    <div class="flag-begin">
-                        <label>投票结束时间</label>
-                        <select v-model="limitedTime" class="form-control">
-                            <option v-for="n in 24">
-                                {{n}}个小时以后
-                            </option>
-                        </select>
+                    <!--<div class="flag-begin">-->
+                        <!--<label>投票结束时间</label>-->
+                        <!--<select v-model="limitedTime" class="form-control">-->
+                            <!--<option v-for="n in 24">-->
+                                <!--{{n}}个小时以后-->
+                            <!--</option>-->
+                        <!--</select>-->
+                    <!--</div>-->
+                    <div class="time_wrapper">
+                        <span class="desc">投票时长</span>
+                        <div class="reduce_icon_wrapper" @click="reduceActionTime">
+                            <img src="../assets/img/reduce_icon.png"/>
+                        </div>
+
+                        <p class="time">
+                            {{actionTime}}
+                        </p>
+
+                        <div class="add_icon_wrapper" @click="addActionTime">
+                            <img src="../assets/img/add_icon.png" class="icon"/>
+                        </div>
+                        <span>小时</span>
                     </div>
+
                     <div class="vote-options">
                         <div class="vote-title">
                             <label>投票选项</label>
@@ -38,7 +54,7 @@
                             <div>
                                 <ul>
                                     <li class="bd-callout bd-callout-warning" v-for="(option, index) in choosedOptions" v-bind:key="option.id">
-                                        <img @click="options.splice(index,1)" class="option-icon" src="./../assets/img/reduce.png"/>
+                                        <img @click="choosedOptions.splice(index,1)" class="option-icon" src="./../assets/img/reduce.png"/>
                                         投票数达到{{option.votesCount}}票时,送出{{option.prizeType}}共{{option.prizeCount}}份
                                     </li>
                                 </ul>
@@ -52,33 +68,65 @@
                         <label>其他选项(可选)</label>
                     </div>
                     <div class="form-check">
-                        <input v-model="otherOptions" type="checkbox" value="开启'最后一分钟'加速模式"/>开启"最后一分钟"加速模式.
+                        <input v-model="otherOptions" type="checkbox" value="1"/>开启"最后一分钟"加速模式.
                     </div>
                     <div class="form-check">
-                        <input v-model="otherOptions" type="checkbox" value="开启主播口令模式">开启主播口令模式.
+                        <input v-model="otherOptions" type="checkbox" value="2">开启随机送票模式.
                     </div>
                     <div class="form-check">
-                        <input v-model="otherOptions" type="checkbox" value="开启随机送票模式">开启随机送票模式.
+                        <input v-model="otherOptions" type="checkbox" value="3">开启主播口令模式.
+                        <div v-if="otherOptions.find(item => item==3)">
+                            <label>口令内容</label>
+                            <input v-model="orderContent" class="form-control" type="text" placeholder="如:整条街我靓仔"/>
+                            <!--<div :click="addOrder" class="add-btn">+添加口令</div>-->
+                        </div>
                     </div>
                 </div>
+
+                <a-button @click="testSdk">测试</a-button>
             </div>
 
             <div class="btn_wrapper">
                 <button @click="saveSettingConfig" type="button" class="save">保存</button>
-                <button @click="getAnchorMsg" type="button" class="start">启动</button>
+                <button @click="startAction" type="button" class="start">启动</button>
             </div>
 
             <!--<button type="button" @click="testSdk">测试</button>-->
 
-            <div id="preview">
-                <h3>浏览</h3>
-                <p>{{limitedTime}}</p>
-                <p>{{flagContent}}</p>
-                <p>{{supportOption}}</p>
-                <p>{{objectOption}}</p>
-                <p v-for="choosedOption in choosedOptions">{{choosedOption}}</p>
-                <p v-for="otherOption in otherOptions">{{otherOption}}</p>
+            <!--<div id="preview">-->
+                <!--<h3>浏览</h3>-->
+                <!--<p>{{flagContent}}</p>-->
+                <!--<p>{{supportOption}}</p>-->
+                <!--<p>{{objectOption}}</p>-->
+                <!--<p v-for="choosedOption in choosedOptions">{{choosedOption}}</p>-->
+                <!--<p v-for="otherOption in otherOptions">{{otherOption}}</p>-->
+            <!--</div>-->
+
+            <a-button>测试</a-button>
+        </div>
+
+        <div v-if="showCountingDownPanel" class="count_down_panel">
+            <div v-if="isReadyCountDown">
+                <p class="tip_ready">即将开始</p>
+                <p v-if="readyCountDownNum > 0">{{readyCountDownNum}}</p>
             </div>
+        </div>
+
+        <div v-if="showLiveInfoPanel" class="live_info_panel">
+            <div class="addcountdown">
+                <p v-if="!voteIsStart">活动还未开始哦~</p>
+                <p v-if="voteIsStart&&!voteIsEnd">距投票还剩
+                    <span>{{time.hours}}</span> 时 <span>{{time.minute}}</span> 分 <span>{{time.second}}</span> 秒</p>
+                <div>
+                    <div></div>
+
+                </div>
+                <p v-if="voteIsEnd" style="color:red">投票已结束</p>
+            </div>
+        </div>
+
+        <div v-if="showResultPanel && result" class="result_panel">
+
         </div>
 
         <add-options-dialog
@@ -90,6 +138,7 @@
 
 <script>
     import ARadioGroup from "ant-design-vue/es/radio/Group";
+    import CONFIG from "./../assets/config";
     import OptionSetting from "./optionSetting";
     import util from "./../assets/util"
     import eventBus from "../assets/eventBus"
@@ -98,27 +147,36 @@
 
     export default {
         name: 'Index',
-        components: {Toast, AddOptionsDialog, OptionSetting, ARadioGroup},
+        components: {Toast, AddOptionsDialog},
         props: {
             msg: String
         },
         data() {
             return {
-                flagContent: '',
+                flagId: -1,
+                actionTime:1,  //提交项
+                flagContent: '',//提交项
                 supportOption: '',
                 objectOption: '',
-                limitedTime:'',
-                choosedOptions:[],
-                otherOptions:[],
+                choosedOptions:[], //提交项
+                otherOptions:[], //提交项
                 nextOptionsId:2,
-                isSettingSelf: true,
-                anchorMsg:{}
+                anchorMsg:{},
+                orderContent:{}, //提交项
+                settingState:CONFIG.settingStateMap.unstart,
+                voteCountDownNum: 0,
+                readyCountDownNum: 0,
+                isReadyCountDown: true,
+                voteIsStart: false,
+                voteIsEnd: false,
+                curTimer: null,
+                time:{hours:'', minute:'', second:''}
             }
         },
         created(){
             hyExt.onLoad(()=>{
                 this.getAnchorMsg();
-                this.getLastResult();
+                this.getLastVoteResult();
                 this.registerResultListener();
 
                 eventBus.$on('saveOption',({votesCount, prizeType, prizeCount}) => {
@@ -129,7 +187,7 @@
                         optionId:this.nextOptionsId++,
                         votesCount:votesCount,
                         prizeType:prizeType,
-                        prizeCount:prizeCount
+                        prizeCount:prizeCount,
                     });
 
                     var compare = function (prop) {
@@ -151,9 +209,75 @@
             });
 
         },
-        methods:{
-            getLastResult(){
+        computed: {
+            showUnstartPanel(){
+                return this.settingState == CONFIG.settingStateMap.unstart;
+            },
+            showCountingDownPanel() {
+                return this.settingState == CONFIG.settingStateMap.countDown;
+            },
+            showLiveInfoPanel(){
+                return this.settingState == CONFIG.settingStateMap.liveInfo;
+            },
+            showResultPanel(){
+                return this.settingState == CONFIG.settingStateMap.end;
+            },
+        },
 
+        methods:{
+            getLastVoteResult(flagId = ""){
+                var questParam = {};
+                if(flagId){
+                    questParam = {
+                        service: 'getFlagResult',
+                        param: {
+                            flagId: flagId
+                        }
+                    }
+                }
+                else {
+                    questParam = {
+                        service: 'getFlagResult',
+                    }
+                }
+
+                // util.request(questParam)
+                //     .then(res => {
+                //         if(res.status === 0){
+                //             if(res.data && res.data.flagId){
+                //
+                //             }
+                //         }
+                //     })
+            },
+
+            //注册结果的一个监听按钮。有消息源就触发
+            registerResultListener(){
+                // hyExt.observer.on('get_finish_result', res => {
+                //     res = JSON.parse(res);
+                //     this.getLastVoteResult(this.flagId);
+                //     this.settingState = CONFIG.settingStateMap.end;
+                //     console.log("推送结果完毕", res)
+                // })
+                hyExt.observer.on('foo', res=>{
+                    res = JSON.parse(res);
+                    console.log("推送完毕",res);
+                })
+
+            },
+
+            reduceActionTime(){
+                if(this.actionTime <=CONFIG.minSettingActionTime){
+                    return;
+                }
+                this.actionTime-=0.5;
+            },
+
+            addActionTime(){
+                if(this.actionTime >= CONFIG.maxSettingActionTime){
+                    return;
+                }
+                this.actionTime+=0.5;
             },
 
             showAddOptionsDialog(){
@@ -164,12 +288,8 @@
                 eventBus.$emit('showDialog');
             },
 
-            registerResultListener(){
-
-            },
-
             saveSettingConfig: function(){
-                if(!(this.flagContent&&this.limitedTime&&this.choosedOptions.length)){
+                if(!(this.flagContent&&this.actionTime&&this.choosedOptions.length)){
                     util.showToast('请填写完整配置哈~');
                     return;
                 }
@@ -184,7 +304,7 @@
 
                 var submitValue = {
                     flagContent: util.xssFilter(this.flagContent),
-                    limitedTime: this.limitedTime,
+                    limitedTime: this.actionTime,
                     choosedOptions: this.choosedOptions,
                     otherOptions: this.choosedOptions
                 };
@@ -198,16 +318,96 @@
                         options: JSON.stringify(submitValue)
                     }
                 }).then(res => {
-                    console.log(res)
-                        // if(res.status === 0 && res.data) {
-                        //     this.raceId = res.data.raceId;
-                        //     util.showToast('已成功保存');
-                        // }else{
-                        //     util.showToast(res.msg);
-                        // }
-                        //
-                        // console.log('保存结果', res);
+                    console.log('dede',res);
+                    if(res.status == 200 && res.flag_id) {
+                        this.flagId = res.flag_id;
+                        util.showToast('已成功保存');
+                    }else{
+                        util.showToast(res.msg);
+                    }
+
+                    console.log('保存结果', res);
                 });
+            },
+
+
+            startAction(){
+
+                if(!(this.flagContent&&this.actionTime&&this.choosedOptions.length)){
+                    util.showToast('请填写完整配置哈~');
+                    return;
+                }
+
+                if(this.flagId <=0 ){
+                    util.showToast('请先保存好设置，再启动');
+                    return;
+                }
+
+                this.startReadyTimeCountDown();
+
+                // util.request({
+                //     service: 'startFlag',
+                //     method: 'POST',
+                //     param: {
+                //         flagId: this.flagId
+                //     }
+                // }).then(res => {
+                //     if(res.status === 0){
+                //         console.log('启动成功');
+                //         this.startReadyTimeCountDown();
+                //     }
+                //     else {
+                //         util.showToast(res.msg);
+                //     }
+                //
+                //     console.log('正在启动', res);
+                // })
+
+            },
+
+            startReadyTimeCountDown(){
+                this.readyCountDownNum = 3;
+                this.isReadyCountDown = true;
+                this.settingState = CONFIG.settingStateMap.countDown;
+
+                var timer = setInterval(() => {
+                    if(this.readyCountDownNum <= 0){
+                        this.settingState = CONFIG.settingStateMap.liveInfo;
+                        this.startVoteTimeCountDown(this.raceTime);
+                        this.isReadyCountDown = false;
+                        clearInterval(timer);
+                    }
+
+                    this.readyCountDownNum--;
+                }, 1000)
+            },
+
+            startVoteTimeCountDown(){
+                this.voteIsStart = true;
+                this.voteCountDownNum = new Date().getTime() + this.actionTime * 10 * 1000;
+                var that = this;
+                if(this.voteIsStart&&!this.voteIsEnd){
+
+                    this.curTimer = setInterval(()=>{
+                        if(that.voteCountDownNum - new Date().getTime()>0){
+                            var curTime = util.SecondToData(that.voteCountDownNum);
+                            this.initFormate(curTime);
+                            this.initFormate(curTime);
+                        }
+                        else {
+                            that.voteIsEnd = true;
+                            clearInterval(curTime);
+                        }
+                    }, 1000);
+                }
+
+                console.log(this.voteCountDownNum);
+            },
+
+            initFormate(curTime){
+                this.time.hours = curTime.split(':')[0];
+                this.time.minute = curTime.split(':')[1];
+                this.time.second = curTime.split(':')[2];
             },
 
             getAnchorMsg(){
@@ -220,6 +420,11 @@
                 }).catch(err => {
                     hyExt.logger.warn('获取用户信息失败');
                 });
+            },
+
+
+            testSdk(){
+                hyExt.observer.emit('foo','foo');
             }
 
         }

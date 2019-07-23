@@ -1,16 +1,17 @@
  const isDebug = false;
 
  var config = {
-    minSettingActionTime: 3,
-    maxSettingActionTime: 50,
+    minSettingActionTime: 0.5,
+    maxSettingActionTime: 24,
     defaultActionTime: 3,
     extUuid: '',
-    baseUrl: isDebug ? '' : 'z.cn',
+    baseUrl: isDebug ? '' : 'weixiaoyuan.xyz',
     port: isDebug ? 17050 : 80,
     settingStateMap: {
         unstart: 0,
         countDown: 1,
-        end: 2
+        liveInfo:2,
+        end: 3
     }
 }
 
