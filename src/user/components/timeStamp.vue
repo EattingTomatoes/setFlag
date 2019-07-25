@@ -4,19 +4,21 @@
             <div class="time_line" style="width:90%;">
                 <ol>
                     <li>
-                        <a class="order_item selected" style="left:15%;">step1</a>
+                        <a-popover content="人数达到100送出千年知乎100个">
+                            <a class="order_item selected" style="left:20%;">奖品一</a>
+                        </a-popover>
                     </li>
                     <li>
-                        <a class="order_item" style="left:40%;">step2</a>
+                        <a class="order_item selected" style="left:40%;">奖品二</a>
                     </li>
                     <li>
-                        <a class="order_item" style="left:70%;">step3</a>
+                        <a class="order_item" style="left:60%;">奖品三</a>
                     </li>
                     <li>
-                        <a class="order_item" style="left:90%;">step4</a>
+                        <a class="order_item" style="left:80%;">奖品四</a>
                     </li>
                 </ol>
-                <span class="filling_line" style="transform: scaleX(0.28);"></span>
+                <span class="filling_line" :style="styleObject"></span>
             </div>
         </div>
     </div>
@@ -24,7 +26,25 @@
 
 <script>
     export default {
-        name: "timeStamp"
+        name: "timeStamp",
+        props:{
+            // prizeMsg:{
+            //     type: Array,
+            //     required: true
+            // },
+
+        },
+        data(){
+            return{
+                styleObject: {
+                    fontSize: '20px',
+                    transform: 'scaleX(0.22)'
+                }
+            }
+        },
+        methods:{
+
+        }
     }
 </script>
 
@@ -53,7 +73,7 @@
         text-align: center;
         font-size: 13px;
         padding-bottom: 15px;
-        color: black;
+        color: #fcffda;
     }
     .order_item:after{
         content: '';
@@ -71,8 +91,8 @@
     .selected:after{
         background-color: #ffba4a;
         border-color: #ffba4a;
-        height: 10px;
-        width: 10px;
+        height: 12px;
+        width: 12px;
     }
     .filling_line{
         position: absolute;
@@ -88,6 +108,7 @@
         transition-timing-function: initial;
         transition-delay: initial;
     }
+
     .filling_line:after{
         display: block;
         height: 100%;

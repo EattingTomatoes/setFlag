@@ -98,7 +98,6 @@ var util = {
             }
         }
 
-
         let curtime = '';
         curtime = time.split(':');
 

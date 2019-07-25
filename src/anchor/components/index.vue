@@ -1,35 +1,27 @@
 <template>
     <div id="index">
-        <i class="title"></i>
+        <div class="anchor_bg">
+            <img class="bg" src="./../assets/img/background.png"/>
+        </div>
+        <!--<i class="title"></i>-->
         <div v-if="showUnstartPanel" class="form-data">
             <div>
                 <div>
                     <div class="flag-content">
                         <label>Flag内容</label>
-                        <input type="text" v-model="flagContent" class="form-control"/>
+                        <div class="content"><a-input type="text" style="padding-left: 10px" size="default" v-model="flagContent"></a-input></div>
+                        <!--<input type="text" v-model="flagContent" class="form-control"/>-->
                     </div>
-                    <!--<div class="flag-begin">-->
-                        <!--<label>投票结束时间</label>-->
-                        <!--<select v-model="limitedTime" class="form-control">-->
-                            <!--<option v-for="n in 24">-->
-                                <!--{{n}}个小时以后-->
-                            <!--</option>-->
-                        <!--</select>-->
-                    <!--</div>-->
-                    <div class="time_wrapper">
-                        <span class="desc">投票时长</span>
-                        <div class="reduce_icon_wrapper" @click="reduceActionTime">
-                            <img src="../assets/img/reduce_icon.png"/>
-                        </div>
 
-                        <p class="time">
-                            {{actionTime}}
-                        </p>
-
-                        <div class="add_icon_wrapper" @click="addActionTime">
-                            <img src="../assets/img/add_icon.png" class="icon"/>
+                    <div class="time-wrapper">
+                        <label class="desc">投票时长</label>
+                        <div class="wrapper">
+                            <a-icon type="minus" class="time-icon" @click="reduceActionTime"></a-icon>
+                            <p class="time">
+                                {{actionTime}}小时
+                            </p>
+                            <a-icon type="plus" class="time-icon" @click="addActionTime"/>
                         </div>
-                        <span>小时</span>
                     </div>
 
                     <div class="vote-options">
@@ -38,35 +30,35 @@
                         </div>
                         <div v-if="isSettingSelf='default'" class="vote-option">
                             <div class="option-content">
-                                <p class="support-option">"支持票| 这波我必须自持"</p>
-                            </div>
-                            <div class="option-content">
-                                <p class="object-option">"反对票| 我jio得不可能"</p>
+                                <div><a-input type="text" class="option-support" addonBefore="支持票" v-model="voteContent.support"/></div>
+                                <div><a-input type="text" class="option-object" addonBefore="反对票" v-model="voteContent.object"/></div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div>
-                    <div>
-                        <label>奖金进度</label>
-                        <div class="options-setting">
-                            <div>
-                                <ul>
-                                    <li class="bd-callout bd-callout-warning" v-for="(option, index) in choosedOptions" v-bind:key="option.id">
-                                        <img @click="choosedOptions.splice(index,1)" class="option-icon" src="./../assets/img/reduce.png"/>
-                                        投票数达到{{option.votesCount}}票时,送出{{option.prizeType}}共{{option.prizeCount}}份
-                                    </li>
-                                </ul>
-                                <div @click="showAddOptionsDialog" class="add-btn">+添加选项</div>
-                            </div>
-                        </div>
+                <div class="prize-container">
+                    <label>奖金进度</label>
+                    <div class="options-setting">
+                            <ul>
+                            <li class="bd-callout bd-callout-warning" v-for="(option, index) in choosedOptions" v-bind:key="option.id">
+                                <a-icon type="minus" class="option-icon" @click="choosedOptions.splice(index,1)"></a-icon>
+                                <div class="option-container">
+                                    投票数达到<span>{{option.votesCount}}</span>票时,
+                                    送出<span>{{option.prizeType}}</span>
+                                    共<span>{{option.prizeCount}}</span>份
+                                </div>
+                            </li>
+                        </ul>
+                        <div @click="showAddOptionsDialog" class="add-btn">+添加选项</div>
                     </div>
                 </div>
+
                 <div class="other-options">
                     <div>
                         <label>其他选项(可选)</label>
                     </div>
+
                     <div class="form-check">
                         <input v-model="otherOptions" type="checkbox" value="1"/>开启"最后一分钟"加速模式.
                     </div>
@@ -75,59 +67,62 @@
                     </div>
                     <div class="form-check">
                         <input v-model="otherOptions" type="checkbox" value="3">开启主播口令模式.
-                        <div v-if="otherOptions.find(item => item==3)">
-                            <label>口令内容</label>
-                            <input v-model="orderContent" class="form-control" type="text" placeholder="如:整条街我靓仔"/>
-                            <!--<div :click="addOrder" class="add-btn">+添加口令</div>-->
-                        </div>
+                    </div>
+
+                    <div class="order-content-style" v-if="otherOptions.find(item => item==3)">
+                        <label>口令内容</label>
+                        <!--<div :click="addOrder" class="add-btn">+添加口令</div>-->
+                        <a-input class="order-input" v-model="orderContent" type="text" placeholder="如:整条街我靓仔"></a-input>
                     </div>
                 </div>
 
-                <a-button @click="testSdk">测试</a-button>
             </div>
 
             <div class="btn_wrapper">
-                <button @click="saveSettingConfig" type="button" class="save">保存</button>
-                <button @click="startAction" type="button" class="start">启动</button>
+                <div class="save"><a-button size="large" @click="saveSettingConfig">保存</a-button></div>
+                <div class="start"><a-button size="large" @click="startAction">启动</a-button></div>
             </div>
 
             <!--<button type="button" @click="testSdk">测试</button>-->
 
-            <!--<div id="preview">-->
-                <!--<h3>浏览</h3>-->
-                <!--<p>{{flagContent}}</p>-->
-                <!--<p>{{supportOption}}</p>-->
-                <!--<p>{{objectOption}}</p>-->
-                <!--<p v-for="choosedOption in choosedOptions">{{choosedOption}}</p>-->
-                <!--<p v-for="otherOption in otherOptions">{{otherOption}}</p>-->
-            <!--</div>-->
+            <div id="preview" style="color: white">
+                <h3>浏览</h3>
+                <p>{{flagContent}}</p>
+                <p>{{orderContent}}</p>
+                <p>{{voteContent}}</p>
+                <p>{{actionTime}}</p>
+                <p v-for="choosedOption in choosedOptions">{{choosedOption}}</p>
+                <p v-for="otherOption in otherOptions">{{otherOption}}</p>
+            </div>
 
-            <a-button>测试</a-button>
         </div>
 
         <div v-if="showCountingDownPanel" class="count_down_panel">
-            <div v-if="isReadyCountDown">
+            <div class="ready_content" v-if="isReadyCountDown">
                 <p class="tip_ready">即将开始</p>
-                <p v-if="readyCountDownNum > 0">{{readyCountDownNum}}</p>
+                <p class="count_ready" v-if="readyCountDownNum > 0">{{readyCountDownNum}}</p>
             </div>
         </div>
 
         <div v-if="showLiveInfoPanel" class="live_info_panel">
-            <div class="addcountdown">
+            <div class="live_info_show">
+                <p class="flag_content">{{anchorMsg.userNick}}:&nbsp;{{flagContent}}</p>
                 <p v-if="!voteIsStart">活动还未开始哦~</p>
                 <p v-if="voteIsStart&&!voteIsEnd">距投票还剩
                     <span>{{time.hours}}</span> 时 <span>{{time.minute}}</span> 分 <span>{{time.second}}</span> 秒</p>
-                <div>
-                    <div></div>
-
-                </div>
                 <p v-if="voteIsEnd" style="color:red">投票已结束</p>
+                <div>
+                    <p>支持票</p>
+                    <p>反对票</p>
+                </div>
             </div>
         </div>
 
         <div v-if="showResultPanel && result" class="result_panel">
 
         </div>
+
+        <!--<a-button @click="testSdk"></a-button>-->
 
         <add-options-dialog
             :choosedOptionList="choosedOptions">
@@ -162,7 +157,7 @@
                 otherOptions:[], //提交项
                 nextOptionsId:2,
                 anchorMsg:{},
-                orderContent:{}, //提交项
+                orderContent:'', //提交项
                 settingState:CONFIG.settingStateMap.unstart,
                 voteCountDownNum: 0,
                 readyCountDownNum: 0,
@@ -170,6 +165,7 @@
                 voteIsStart: false,
                 voteIsEnd: false,
                 curTimer: null,
+                voteContent:CONFIG.voteContent,
                 time:{hours:'', minute:'', second:''}
             }
         },
@@ -177,7 +173,6 @@
             hyExt.onLoad(()=>{
                 this.getAnchorMsg();
                 this.getLastVoteResult();
-                this.registerResultListener();
 
                 eventBus.$on('saveOption',({votesCount, prizeType, prizeCount}) => {
                     console.log('传过来的内容为',votesCount,prizeType,prizeCount);
@@ -207,6 +202,8 @@
 
                 })
             });
+
+            this.registerResultListener();
 
         },
         computed: {
@@ -253,15 +250,11 @@
 
             //注册结果的一个监听按钮。有消息源就触发
             registerResultListener(){
-                // hyExt.observer.on('get_finish_result', res => {
-                //     res = JSON.parse(res);
-                //     this.getLastVoteResult(this.flagId);
-                //     this.settingState = CONFIG.settingStateMap.end;
-                //     console.log("推送结果完毕", res)
-                // })
-                hyExt.observer.on('foo', res=>{
+                hyExt.observer.on('get_finish_result', res => {
                     res = JSON.parse(res);
-                    console.log("推送完毕",res);
+                    this.getLastVoteResult(this.flagId);
+                    this.settingState = CONFIG.settingStateMap.end;
+                    console.log("推送结果完毕", res)
                 })
 
             },
@@ -289,8 +282,14 @@
             },
 
             saveSettingConfig: function(){
-                if(!(this.flagContent&&this.actionTime&&this.choosedOptions.length)){
+                if(!(this.flagContent&&this.actionTime&&this.choosedOptions.length
+                    &&this.voteContent.object &&this.voteContent.support)){
                     util.showToast('请填写完整配置哈~');
+                    return;
+                }
+
+                if(this.otherOptions.find(item => item==3)&&!this.orderContent){
+                    util.showToast('请填写主播口令~');
                     return;
                 }
 
@@ -305,8 +304,10 @@
                 var submitValue = {
                     flagContent: util.xssFilter(this.flagContent),
                     limitedTime: this.actionTime,
-                    choosedOptions: this.choosedOptions,
-                    otherOptions: this.choosedOptions
+                    voteContent: this.voteContent, // 投票选项
+                    choosedOptions: this.choosedOptions, // 奖品选项
+                    otherOptions: this.otherOptions, // 其它配置
+                    orderContent: this.orderContent,
                 };
 
                 var that = this;
@@ -425,6 +426,10 @@
 
             testSdk(){
                 hyExt.observer.emit('foo','foo');
+            },
+
+            getCheckBox:function(res){
+                console.log(res);
             }
 
         }
@@ -432,7 +437,7 @@
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped lang="scss">
+<style lang="scss">
 
     @import '../assets/scss/partial/_base';
     @import "../assets/scss/partial/_reset";
@@ -441,36 +446,95 @@
     #index {
         display: flex;
         flex-direction: column;
-        background-color: rgb(59, 136, 117);
+        background-color: #173b32;
     }
 
-    #index .title {
-        height: 253px;
-        background: url("../assets/img/title.png") no-repeat 10%;
-        -moz-background-size: 100%;
-        background-size: 100%;
+
+    #index .anchor_bg{
+        width: 100%;
+        height: 1500px;
+        background-color: #173b32;
+        position: absolute;
+        top: 0;
+
+        .bg{
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 100%;
+            z-index: 0;
+            user-select: none;
+        }
     }
 
     .form-data {
-        margin: 5px 0 0 12px;
-        max-width: 300px;
-        border-radius: 5px;
-        padding: 12px 10px;
-        background-color: rgba(255, 255, 255, 0.4);
-        margin-bottom: 20px;
+        /*margin: 5px 0 0 12px;*/
+        /*max-width: 300px;*/
+        /*border-radius: 5px;*/
+        /*padding: 12px 10px;*/
+        /*background-color: rgba(255, 255, 255, 0.4);*/
+        /*margin-bottom: 20px;*/
+        position: relative;
+        top: 280px;
+        display: flex;
+        flex-direction: column;
+        padding: 20px auto;
+        color: #f5d090;
     }
 
     label {
-        display: block;
-        margin: 20px 0 10px;
-        font-size: 16px;
-        font-weight: 600;
+        font-size: 17px;
+        margin: 0 10px;
+    }
+
+    .flag-content{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        vertical-align: middle;
+        .content {
+            width: 73%;
+        }
+    }
+
+    .time-wrapper{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        vertical-align: middle;
+        margin-top: 20px;
+
+        .time{
+            padding: 5px 7px;
+            margin: 0 5px;
+            border-left: 1px solid #cccccc;
+            border-right: 1px solid #cccccc;
+            letter-spacing: 1px;
+        }
+
+        .wrapper{
+            display: flex;
+            flex-direction: row;
+            background-color: white;
+            border-radius: 5px;
+            padding: 0 10px;
+            align-items: center;
+            vertical-align: middle;
+            color: black;
+
+            .time-icon{
+                font-size: 20px;
+                color: #747575;
+            }
+        }
+
     }
 
     .vote-options {
 
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        margin-top: 20px;
 
         img {
             width: 20px;
@@ -490,31 +554,22 @@
         }
 
         .option-content {
-
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
+            width: 100%;
 
-            p {
-                padding: 8px 8px;
-                margin-bottom: 1rem;
-                border: 1px solid transparent;
-                border-radius: .25rem;
-                width: 90%;
+            div {
+                margin-bottom: 10px;
             }
 
-            .support-option {
-                color: #0c5460;
-                background-color: #d1ecf1;
-                border-color: #bee5eb;
-            }
-
-            .object-option {
-                color: #721c24;
-                background-color: #f8d7da;
-                border-color: #f5c6cb;
-            }
         }
 
+    }
+
+    .prize-container{
+        display: flex;
+        flex-direction: column;
+        margin-top: 5px;
     }
 
     .add-btn{
@@ -523,100 +578,141 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        border-radius: 4px;
-        background-color: white;
+        background-color: #90cade;
         padding: 6px;
-        width:90%;
+        width:95%;
     }
 
-    .bd-callout{
-        padding: 0.55rem;
-        margin-top: 1.25rem;
-        margin-bottom: 1.25rem;
-        border: 1px solid #eee;
-        border-left-width: .25rem;
-        border-radius: .25rem;
-        font-size: 14px;
-        list-style-type: none;
-        margin-left: 0;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        vertical-align: middle;
-        letter-spacing: 1px;
+    .options-setting{
+
+        margin: 3px 0 10px 10px;
+        color: black;
+
+        .bd-callout {
+            padding: 5px;
+            margin-top: 3px;
+            margin-bottom: 8px;
+            border: 1px solid #eee;
+            border-left-width: .25rem;
+            border-radius: .25rem;
+            font-size: 14px;
+            list-style-type: none;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            vertical-align: middle;
+            letter-spacing: 1px;
+            width: 95%;
+            color: black;
+            background-color: #f7f7f7;
+            border-left-color: #f0ad4e;
+            word-wrap: break-word;
+            word-break: break-all;
+
+
+            .option-icon {
+                font-size: 20px;
+                padding-right: 8px;
+                margin-right: 8px;
+                border-right: 1px solid #cccccc;
+                color: #747575;
+            }
+
+            .option-container{
+                display: block;
+                span{
+                    color: black;
+                    font-weight: 600;
+                    font-size: 15px;
+                    white-space: nowrap;
+                }
+            }
+        }
     }
 
-    .bd-callout-warning{
-        border-left-color: #f0ad4e;
-
-    }
-
-    .option-icon{
-        height: 22px;
-        width: 22px;
-        margin-right: 10px;
-    }
-
-    .form-control {
-        display: block;
-        width: 90%;
-        padding: 5px 5px;
-        font-size: 1rem;
-        line-height: 1.5;
-        color: #495057;
-        background-color: #fff;
-        background-clip: padding-box;
-        border: 1px solid #ced4da;
-        border-radius: .25rem;
-        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
-    }
 
     .other-options {
-        margin-top: 0;
-
+        margin-top: 10px;
         .form-check {
             position: relative;
             display: block;
-
+            color: white;
+            padding-left: 10px;
+            margin-top: 7px;
         }
+        .checkbox-style{
+            color: white;
+        }
+        .order-content-style{
+
+            margin-top: 10px;
+            .order-input{
+                margin-top: 10px;
+                margin-left: 10px;
+                width: 90%;
+            }
+        }
+
     }
 
     .btn_wrapper{
         //width: size(680px); //暂时调整样式
-        margin: 20px auto 0;
+        margin-top: 20px;
         display: flex;
-        justify-content: space-between;
+        justify-content: space-around;
+    }
 
-        .save, .start{
-            width: 105px;
-            height: 40px;
-            border-radius: 10px;
-            border: 0;
-            font-size: 16px;
-            cursor: pointer;
-            display: block;
-        }
+    .count_down_panel{
+        position: relative;
+        top: 280px;
+        display: flex;
+        flex-direction: column;
+        padding: 20px auto;
+        color: #f5d090;
 
-        .save{
-            background: #fff;
-            color: #FFA200;
-            &:active{
-                background: #e5e5e5;
+
+        .ready_content{
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            .tip_ready{
+                margin: 0 auto;
+                font-size: 30px;
+            }
+
+            .count_ready{
+                font-size: 35px;
             }
         }
 
-        .start{
-            background: #FFA200;
-            color: #fff;
-            &:active{
-                background: #e59100;
-            }
+    }
 
-            &.disabled{
-                background: #e5e5e5;
-                color: #999999;
-                cursor: default;
+    .live_info_panel{
+        position: relative;
+        top: 280px;
+        display: flex;
+        flex-direction: column;
+        padding: 20px auto;
+        color: #f5d090;
+        align-items: center;
+        justify-content: center;
+
+        .live_info_show{
+            font-size: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            .flag-content{
+                font-size: 33px;
+                margin-bottom: 10px;
+                width: 90%;
             }
         }
+
     }
 </style>

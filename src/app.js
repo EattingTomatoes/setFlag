@@ -1,9 +1,14 @@
 import Vue from 'vue'
 import App from './user/App.vue'
-import Button  from 'ant-design-vue/lib/button'
 import "ant-design-vue/dist/antd.css";
+import Vuescroll from 'vuescroll';
+import Antd from 'ant-design-vue'
+import 'vuescroll/dist/vuescroll.css'
 
-Vue.component(Button.name, Button);
+Vue.use(Antd);
+
+Vue.component(Vuescroll.name, Vuescroll);
+
 Vue.config.productionTip = false;
 
 new Vue({

@@ -33,4 +33,8 @@ export default {
         background:transparent;
         overflow-x:hidden;
     }
+
+    #app {
+        background-color: #173b32;
+    }
 </style>
