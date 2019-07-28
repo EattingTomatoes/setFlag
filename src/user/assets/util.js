@@ -52,10 +52,10 @@ var util = {
     hy_request({service, method = 'GET', param = {}}) {
         var requestParam = {
             host: baseUrl,
-            param: {},
+            param: param,
             port: port,
             httpMethod: method,
-            path: `/vent/api/v1/${service}`
+            path: `/api/hysetflag/${service}`
         };
         console.log('请求',requestParam);
 
@@ -116,7 +116,10 @@ var util = {
 
 
         return curArr;
-    }
+    },
+    showToast(text){
+        eventBus.$emit('showToast', text);
+    },
 };
 
 export default util;

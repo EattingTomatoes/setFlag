@@ -5,7 +5,7 @@ var config = {
     maxSettingActionTime: 8,
     defaultActionTime: 3,
     extUuid: '',
-    baseUrl: isDebug ? '' : 'weixiaoyuan.xyz',
+    baseUrl: isDebug ? '' : 'z.cn',
     port: isDebug ? 17050 : 80,
     settingStateMap: {
         unstart: 0,
@@ -31,7 +31,18 @@ var config = {
             onlyShowBarOnScroll: false, //是否只有滚动的时候才显示滚动条
             background: '#385247',   //颜色
         }
+    },
+    tabs: {
+        fontSize: '20px',
+        color: '#ab9765',
+        display: 'flex',
+        alignItems: 'center',
+        marginLeft: '30px',
+        marginRight: '30px',
+        paddingLeft: '10px',
+        paddingRight: '10px'
+
     }
-}
+};
 
 export default config;

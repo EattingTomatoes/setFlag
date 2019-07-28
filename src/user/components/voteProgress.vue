@@ -10,7 +10,6 @@
                 :style="{width: (percent < 100 ? percent:100) + '%'}">
             </div>
         </div>
-        <span class="progress-text">{{valueText}}</span>
     </div>
 </template>
 

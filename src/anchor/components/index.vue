@@ -1,113 +1,138 @@
 <template>
     <div id="index">
-        <div class="anchor_bg">
-            <img class="bg" src="./../assets/img/background.png"/>
+
+        <div class="bg_title">
+            <img class="title" src="./../assets/img/bg_01.gif"/>
         </div>
-        <!--<i class="title"></i>-->
-        <div v-if="showUnstartPanel" class="form-data">
-            <div>
-                <div>
-                    <div class="flag-content">
-                        <label>Flag内容</label>
-                        <div class="content"><a-input type="text" style="padding-left: 10px" size="default" v-model="flagContent"></a-input></div>
-                        <!--<input type="text" v-model="flagContent" class="form-control"/>-->
-                    </div>
+        <div v-if="showUnstartPanel" class="bg-panel form-data">
+            <a-tabs defaultActiveKey="1" :tabBarStyle="styleObject">
+                <a-tab-pane key="1">
+                    <span slot="tab">
+                        主播设置
+                        <img style="width: 20px; height: 20px;" src="./../assets/img/q_icon.png">
+                    </span>
+                    <div style="color: #f5d090">
+                        <div>
+                            <div class="flag-content">
+                                <label>Flag内容</label>
+                                <div class="content">
+                                    <a-input type="text" style="padding-left: 10px" size="default"
+                                             v-model="flagContent"></a-input>
+                                </div>
+                                <!--<input type="text" v-model="flagContent" class="form-control"/>-->
+                            </div>
 
-                    <div class="time-wrapper">
-                        <label class="desc">投票时长</label>
-                        <div class="wrapper">
-                            <a-icon type="minus" class="time-icon" @click="reduceActionTime"></a-icon>
-                            <p class="time">
-                                {{actionTime}}小时
-                            </p>
-                            <a-icon type="plus" class="time-icon" @click="addActionTime"/>
-                        </div>
-                    </div>
+                            <div class="time-wrapper">
+                                <label class="desc">投票时长</label>
+                                <div class="wrapper">
+                                    <a-icon type="minus" class="time-icon" @click="reduceActionTime"></a-icon>
+                                    <p class="time">
+                                        {{actionTime}}小时
+                                    </p>
+                                    <a-icon type="plus" class="time-icon" @click="addActionTime"/>
+                                </div>
+                            </div>
 
-                    <div class="vote-options">
-                        <div class="vote-title">
-                            <label>投票选项</label>
-                        </div>
-                        <div v-if="isSettingSelf='default'" class="vote-option">
-                            <div class="option-content">
-                                <div><a-input type="text" class="option-support" addonBefore="支持票" v-model="voteContent.support"/></div>
-                                <div><a-input type="text" class="option-object" addonBefore="反对票" v-model="voteContent.object"/></div>
+                            <div class="vote-options">
+                                <div class="vote-title">
+                                    <label>投票选项</label>
+                                </div>
+                                <div v-if="isSettingSelf='default'" class="vote-option">
+                                    <div class="option-content">
+                                        <div>
+                                            <a-input type="text" class="option-support" addonBefore="支持票"
+                                                     v-model="voteContent.support"/>
+                                        </div>
+                                        <div>
+                                            <a-input type="text" class="option-object" addonBefore="反对票"
+                                                     v-model="voteContent.object"/>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <div class="prize-container">
-                    <label>奖金进度</label>
-                    <div class="options-setting">
-                            <ul>
-                            <li class="bd-callout bd-callout-warning" v-for="(option, index) in choosedOptions" v-bind:key="option.id">
-                                <a-icon type="minus" class="option-icon" @click="choosedOptions.splice(index,1)"></a-icon>
-                                <div class="option-container">
-                                    投票数达到<span>{{option.votesCount}}</span>票时,
-                                    送出<span>{{option.prizeType}}</span>
-                                    共<span>{{option.prizeCount}}</span>份
-                                </div>
-                            </li>
-                        </ul>
-                        <div @click="showAddOptionsDialog" class="add-btn">+添加选项</div>
-                    </div>
-                </div>
+                        <div class="prize-container">
+                            <label>奖金进度</label>
+                            <div class="options-setting">
+                                <ul>
+                                    <li class="bd-callout bd-callout-warning" v-for="(option, index) in choosedOptions"
+                                        v-bind:key="option.id">
+                                        <a-icon type="minus" class="option-icon"
+                                                @click="choosedOptions.splice(index,1)"></a-icon>
+                                        <div class="option-container">
+                                            投票数达到<span>{{option.votesCount}}</span>票时,
+                                            送出<span>{{option.prizeType}}</span>
+                                            共<span>{{option.prizeCount}}</span>份
+                                        </div>
+                                    </li>
+                                </ul>
+                                <div @click="showAddOptionsDialog" class="add-btn">+添加选项</div>
+                            </div>
+                        </div>
 
-                <div class="other-options">
-                    <div>
-                        <label>其他选项(可选)</label>
-                    </div>
+                        <div class="other-options">
+                            <div>
+                                <label>其他选项(可选)</label>
+                            </div>
 
-                    <div class="form-check">
-                        <input v-model="otherOptions" type="checkbox" value="1"/>开启"最后一分钟"加速模式.
-                    </div>
-                    <div class="form-check">
-                        <input v-model="otherOptions" type="checkbox" value="2">开启随机送票模式.
-                    </div>
-                    <div class="form-check">
-                        <input v-model="otherOptions" type="checkbox" value="3">开启主播口令模式.
-                    </div>
+                            <div class="form-check">
+                                <input v-model="otherOptions" type="checkbox" value="1"/>开启"最后一分钟"加速模式.
+                            </div>
+                            <div class="form-check">
+                                <input v-model="otherOptions" type="checkbox" value="2">开启随机送票模式.
+                            </div>
+                            <div class="form-check">
+                                <input v-model="otherOptions" type="checkbox" value="3">开启主播口令模式.
+                            </div>
 
-                    <div class="order-content-style" v-if="otherOptions.find(item => item==3)">
-                        <label>口令内容</label>
-                        <!--<div :click="addOrder" class="add-btn">+添加口令</div>-->
-                        <a-input class="order-input" v-model="orderContent" type="text" placeholder="如:整条街我靓仔"></a-input>
+                            <div class="order-content-style" v-if="otherOptions.find(item => item==3)">
+                                <label>口令内容</label>
+                                <!--<div :click="addOrder" class="add-btn">+添加口令</div>-->
+                                <a-input class="order-input" v-model="orderContent" type="text"
+                                         placeholder="如:整条街我靓仔"></a-input>
+                            </div>
+                        </div>
+
                     </div>
-                </div>
-
-            </div>
-
-            <div class="btn_wrapper">
-                <div class="save"><a-button size="large" @click="saveSettingConfig">保存</a-button></div>
-                <div class="start"><a-button size="large" @click="startAction">启动</a-button></div>
-            </div>
+                    <div class="btn_wrapper">
+                        <div class="save">
+                            <a-button size="large" @click="saveSettingConfig">保存</a-button>
+                        </div>
+                        <div class="start">
+                            <a-button size="large" @click="startAction">启动</a-button>
+                        </div>
+                    </div>
+                </a-tab-pane>
+                <a-tab-pane key="2">
+                    <span slot="tab">主播记录</span>
+                </a-tab-pane>
+            </a-tabs>
 
             <!--<button type="button" @click="testSdk">测试</button>-->
 
-            <div id="preview" style="color: white">
-                <h3>浏览</h3>
-                <p>{{flagContent}}</p>
-                <p>{{orderContent}}</p>
-                <p>{{voteContent}}</p>
-                <p>{{actionTime}}</p>
-                <p v-for="choosedOption in choosedOptions">{{choosedOption}}</p>
-                <p v-for="otherOption in otherOptions">{{otherOption}}</p>
-            </div>
+            <!--<div id="preview" style="color: white">-->
+                <!--<h3>浏览</h3>-->
+                <!--<p>{{flagContent}}</p>-->
+                <!--<p>{{orderContent}}</p>-->
+                <!--<p>{{voteContent}}</p>-->
+                <!--<p>{{actionTime}}</p>-->
+                <!--<p v-for="choosedOption in choosedOptions">{{choosedOption}}</p>-->
+                <!--<p v-for="otherOption in otherOptions">{{otherOption}}</p>-->
+            <!--</div>-->
 
         </div>
 
-        <div v-if="showCountingDownPanel" class="count_down_panel">
+        <div v-if="showCountingDownPanel" class="bg-panel count_down_panel">
             <div class="ready_content" v-if="isReadyCountDown">
                 <p class="tip_ready">即将开始</p>
                 <p class="count_ready" v-if="readyCountDownNum > 0">{{readyCountDownNum}}</p>
             </div>
         </div>
 
-        <div v-if="showLiveInfoPanel" class="live_info_panel">
+        <div v-if="showLiveInfoPanel" class="bg-panel live_info_panel">
             <div class="live_info_show">
                 <p class="flag_content">{{anchorMsg.userNick}}:&nbsp;{{flagContent}}</p>
-                <p v-if="!voteIsStart">活动还未开始哦~</p>
                 <p v-if="voteIsStart&&!voteIsEnd">距投票还剩
                     <span>{{time.hours}}</span> 时 <span>{{time.minute}}</span> 分 <span>{{time.second}}</span> 秒</p>
                 <p v-if="voteIsEnd" style="color:red">投票已结束</p>
@@ -115,20 +140,40 @@
                     <p>支持票</p>
                     <p>反对票</p>
                 </div>
+                <div v-if="voteIsEnd">
+                    <div class="bt-vote" @click="submitResult1">从投"支持票"中抽奖</div>
+                    <div class="bt-vote" @click="submitResult2">从投"反对票"中抽奖</div>
+                </div>
             </div>
         </div>
 
-        <div v-if="showResultPanel && result" class="result_panel">
-
+        <div v-if="showResultPanel" class="bg-panel result_panel">
+            <div class="panel-main">
+                <div class="flag-content">
+                    <span>参与Flag:"{{flagContent}}"的中奖名单为:</span>
+                </div>
+                <div class="prize-header">
+                    <span>中奖用户ID</span>
+                    <span>中奖用户名称</span>
+                </div>
+                <div class="prize-list" v-for="prizeMsg in prizeList">
+                    <span>{{prizeMsg.user_id}}</span>
+                    <span>{{prizeMsg.user_name}}</span>
+                </div>
+                <div class="config-bt">
+                    <a-button @click="configNextFlag">配置下一个FLag</a-button>
+                </div>
+            </div>
         </div>
 
-        <!--<a-button @click="testSdk"></a-button>-->
 
         <add-options-dialog
-            :choosedOptionList="choosedOptions">
+                :choosedOptionList="choosedOptions">
         </add-options-dialog>
         <toast></toast>
+
     </div>
+
 </template>
 
 <script>
@@ -148,41 +193,48 @@
         },
         data() {
             return {
+                //程序中的变量项
                 flagId: -1,
-                actionTime:1,  //提交项
-                flagContent: '',//提交项
-                supportOption: '',
-                objectOption: '',
-                choosedOptions:[], //提交项
-                otherOptions:[], //提交项
-                nextOptionsId:2,
-                anchorMsg:{},
-                orderContent:'', //提交项
-                settingState:CONFIG.settingStateMap.unstart,
+                nextOptionsId: 2,
+                settingState: CONFIG.settingStateMap.unstart,
                 voteCountDownNum: 0,
                 readyCountDownNum: 0,
                 isReadyCountDown: true,
                 voteIsStart: false,
                 voteIsEnd: false,
                 curTimer: null,
-                voteContent:CONFIG.voteContent,
-                time:{hours:'', minute:'', second:''}
+                voteContent: CONFIG.voteContent,
+                time: {hours: '', minute: '', second: ''},
+                styleObject: CONFIG.tabs,
+
+                //提交主播配置项
+                anchorMsg: {},
+                supportOption: '',
+                objectOption: '',
+                actionTime: 1,
+                achevieTime: 0,
+                flagContent: '',
+                choosedOptions: [],
+                otherOptions: [],
+                orderContent: '',
+                prizeList: [],
             }
         },
-        created(){
-            hyExt.onLoad(()=>{
+        created() {
+            hyExt.onLoad(() => {
                 this.getAnchorMsg();
                 this.getLastVoteResult();
+                this.registerResultListener();
 
-                eventBus.$on('saveOption',({votesCount, prizeType, prizeCount}) => {
-                    console.log('传过来的内容为',votesCount,prizeType,prizeCount);
+                eventBus.$on('saveOption', ({votesCount, prizeType, prizeCount}) => {
+                    console.log('传过来的内容为', votesCount, prizeType, prizeCount);
                     var length = this.choosedOptions.length;
 
                     this.choosedOptions.push({
-                        optionId:this.nextOptionsId++,
-                        votesCount:votesCount,
-                        prizeType:prizeType,
-                        prizeCount:prizeCount,
+                        optionId: this.nextOptionsId++,
+                        votesCount: votesCount,
+                        prizeType: prizeType,
+                        prizeCount: prizeCount,
                     });
 
                     var compare = function (prop) {
@@ -193,8 +245,12 @@
                                 val1 = Number(val1);
                                 val2 = Number(val2);
                             }
-                            if (val1 < val2) {return -1;}
-                            else if (val1 > val2) {return 1;}
+                            if (val1 < val2) {
+                                return -1;
+                            }
+                            else if (val1 > val2) {
+                                return 1;
+                            }
                             return 0;
                         }
                     };
@@ -203,30 +259,29 @@
                 })
             });
 
-            this.registerResultListener();
 
         },
         computed: {
-            showUnstartPanel(){
+            showUnstartPanel() {
                 return this.settingState == CONFIG.settingStateMap.unstart;
             },
             showCountingDownPanel() {
                 return this.settingState == CONFIG.settingStateMap.countDown;
             },
-            showLiveInfoPanel(){
+            showLiveInfoPanel() {
                 return this.settingState == CONFIG.settingStateMap.liveInfo;
             },
-            showResultPanel(){
+            showResultPanel() {
                 return this.settingState == CONFIG.settingStateMap.end;
             },
         },
 
-        methods:{
-            getLastVoteResult(flagId = ""){
+        methods: {
+            getLastVoteResult(flagId = "") {
                 var questParam = {};
-                if(flagId){
+                if (flagId) {
                     questParam = {
-                        service: 'getFlagResult',
+                        service: 'getFlagConfig',
                         param: {
                             flagId: flagId
                         }
@@ -234,22 +289,47 @@
                 }
                 else {
                     questParam = {
-                        service: 'getFlagResult',
+                        service: 'getFlagConfig',
                     }
                 }
 
-                // util.request(questParam)
-                //     .then(res => {
-                //         if(res.status === 0){
-                //             if(res.data && res.data.flagId){
-                //
-                //             }
-                //         }
-                //     })
+                util.hy_request(questParam)
+                    .then(res => {
+                        if (res.status === 200 && res.data) {
+
+                            console.log(res.data);
+                            var configOptions = JSON.parse(res.data[0]['config_content']);
+                            this.actionTime = configOptions.limitedTime;
+                            this.acheiveTime = configOptions.acheiveTime;
+                            this.voteContent = configOptions.voteContent;
+                            this.choosedOptions = configOptions.choosedOptions;
+                            this.otherOptions = configOptions.otherOptions;
+                            this.orderContent = configOptions.orderContent;
+                            this.flagContent = configOptions.flagContent;
+                            this.flagId = res.data[0]['flag_id'];
+
+
+                            if(res.hasResult) {
+                                if(res.data[0].flag_state==0){
+                                    this.settingState = CONFIG.settingStateMap.liveInfo;
+                                    this.startVoteTimeCountDown();
+                                }
+
+                                else if(res.data[0].flag_state==1){
+                                    this.prizeList = JSON.parse(res.data[0]['prize_list']);
+                                    this.settingState = CONFIG.settingStateMap.end;
+                                }
+                            }
+                            else{
+                                this.settingState = CONFIG.settingStateMap.unstart;
+                            }
+
+                        }
+                    })
             },
 
             //注册结果的一个监听按钮。有消息源就触发
-            registerResultListener(){
+            registerResultListener() {
                 hyExt.observer.on('get_finish_result', res => {
                     res = JSON.parse(res);
                     this.getLastVoteResult(this.flagId);
@@ -259,39 +339,29 @@
 
             },
 
-            reduceActionTime(){
-                if(this.actionTime <=CONFIG.minSettingActionTime){
+            reduceActionTime() {
+                if (this.actionTime <= CONFIG.minSettingActionTime) {
                     return;
                 }
-                this.actionTime-=0.5;
+                this.actionTime -= 0.5;
             },
 
-            addActionTime(){
-                if(this.actionTime >= CONFIG.maxSettingActionTime){
+            addActionTime() {
+                if (this.actionTime >= CONFIG.maxSettingActionTime) {
                     return;
                 }
-                this.actionTime+=0.5;
+                this.actionTime += 0.5;
             },
 
-            showAddOptionsDialog(){
-                if(this.choosedOptions.length >= 5){
+            showAddOptionsDialog() {
+                if (this.choosedOptions.length >= 5) {
                     util.showToast('只能设置五个哦');
                     return;
                 }
                 eventBus.$emit('showDialog');
             },
 
-            saveSettingConfig: function(){
-                if(!(this.flagContent&&this.actionTime&&this.choosedOptions.length
-                    &&this.voteContent.object &&this.voteContent.support)){
-                    util.showToast('请填写完整配置哈~');
-                    return;
-                }
-
-                if(this.otherOptions.find(item => item==3)&&!this.orderContent){
-                    util.showToast('请填写主播口令~');
-                    return;
-                }
+            saveSettingConfig: function () {
 
                 this.choosedOptions = this.choosedOptions.map(item => {
                     return {
@@ -301,9 +371,12 @@
                     }
                 });
 
+                this.acheiveTime = new Date().getTime() + this.actionTime*3600*1000;
+
                 var submitValue = {
                     flagContent: util.xssFilter(this.flagContent),
                     limitedTime: this.actionTime,
+                    acheiveTime: this.acheiveTime,
                     voteContent: this.voteContent, // 投票选项
                     choosedOptions: this.choosedOptions, // 奖品选项
                     otherOptions: this.otherOptions, // 其它配置
@@ -313,17 +386,17 @@
                 var that = this;
                 util.hy_request({
                     service: 'saveConfig',
-                    method:'POST',
+                    method: 'POST',
                     param: {
                         anchorMsg: JSON.stringify(that.anchorMsg),
                         options: JSON.stringify(submitValue)
                     }
                 }).then(res => {
-                    console.log('dede',res);
-                    if(res.status == 200 && res.flag_id) {
+                    console.log('dede', res);
+                    if (res.status == 200 && res.flag_id) {
                         this.flagId = res.flag_id;
                         util.showToast('已成功保存');
-                    }else{
+                    } else {
                         util.showToast(res.msg);
                     }
 
@@ -332,47 +405,48 @@
             },
 
 
-            startAction(){
+            startAction() {
 
-                if(!(this.flagContent&&this.actionTime&&this.choosedOptions.length)){
+                if (!(this.flagContent && this.actionTime && this.choosedOptions.length
+                    && this.voteContent.object && this.voteContent.support)) {
                     util.showToast('请填写完整配置哈~');
                     return;
                 }
 
-                if(this.flagId <=0 ){
-                    util.showToast('请先保存好设置，再启动');
+                if (this.otherOptions.find(item => item == 3) && !this.orderContent) {
+                    util.showToast('请填写主播口令~');
                     return;
                 }
 
-                this.startReadyTimeCountDown();
+                // this.startReadyTimeCountDown();
 
-                // util.request({
-                //     service: 'startFlag',
-                //     method: 'POST',
-                //     param: {
-                //         flagId: this.flagId
-                //     }
-                // }).then(res => {
-                //     if(res.status === 0){
-                //         console.log('启动成功');
-                //         this.startReadyTimeCountDown();
-                //     }
-                //     else {
-                //         util.showToast(res.msg);
-                //     }
-                //
-                //     console.log('正在启动', res);
-                // })
+                util.hy_request({
+                    service: 'startFlag',
+                    method: 'POST',
+                    param: {
+                        flagId: this.flagId
+                    }
+                }).then(res => {
+                    console.log(res);
+                    if(res.status === 200){
+                        console.log('启动成功');
+                        this.startReadyTimeCountDown();
+                    }
+                    else {
+                        util.showToast(res.msg);
+                    }
+                    console.log('正在启动', res);
+                })
 
             },
 
-            startReadyTimeCountDown(){
+            startReadyTimeCountDown() {
                 this.readyCountDownNum = 3;
                 this.isReadyCountDown = true;
                 this.settingState = CONFIG.settingStateMap.countDown;
 
                 var timer = setInterval(() => {
-                    if(this.readyCountDownNum <= 0){
+                    if (this.readyCountDownNum <= 0) {
                         this.settingState = CONFIG.settingStateMap.liveInfo;
                         this.startVoteTimeCountDown(this.raceTime);
                         this.isReadyCountDown = false;
@@ -383,14 +457,14 @@
                 }, 1000)
             },
 
-            startVoteTimeCountDown(){
+            startVoteTimeCountDown() {
                 this.voteIsStart = true;
-                this.voteCountDownNum = new Date().getTime() + this.actionTime * 10 * 1000;
+                this.voteCountDownNum = this.acheiveTime;
                 var that = this;
-                if(this.voteIsStart&&!this.voteIsEnd){
+                if (this.voteIsStart && !this.voteIsEnd) {
 
-                    this.curTimer = setInterval(()=>{
-                        if(that.voteCountDownNum - new Date().getTime()>0){
+                    this.curTimer = setInterval(() => {
+                        if (that.voteCountDownNum - new Date().getTime() > 0) {
                             var curTime = util.SecondToData(that.voteCountDownNum);
                             this.initFormate(curTime);
                             this.initFormate(curTime);
@@ -405,30 +479,68 @@
                 console.log(this.voteCountDownNum);
             },
 
-            initFormate(curTime){
+            initFormate(curTime) {
                 this.time.hours = curTime.split(':')[0];
                 this.time.minute = curTime.split(':')[1];
                 this.time.second = curTime.split(':')[2];
             },
 
-            getAnchorMsg(){
+            getAnchorMsg() {
                 var that = this;
                 hyExt.context.getUserInfo().then(userInfo => {
-                    console.log('Youngso1',that.anchorMsg);
+                    console.log('Youngso1', that.anchorMsg);
                     that.anchorMsg = userInfo;
-                    console.log('Youngso2',that.anchorMsg);
+                    console.log('Youngso2', that.anchorMsg);
                     hyExt.logger.info('获取用户信息成功', userInfo.userNick)
                 }).catch(err => {
                     hyExt.logger.warn('获取用户信息失败');
                 });
             },
 
+            submitResult1(){
+                util.hy_request({
+                    service: 'prizeDraw',
+                    param: {
+                        success: 1,
+                        flagId: this.flagId
+                    }
 
-            testSdk(){
-                hyExt.observer.emit('foo','foo');
+                }).then(res => {
+                    if(res.status==200){
+                        this.prizeList = res.prize_list
+                        this.settingState = CONFIG.settingStateMap.end;
+                    }
+                })
+
             },
 
-            getCheckBox:function(res){
+            submitResult2(){
+                util.hy_request({
+                    service: 'prizeDraw',
+                    param: {
+                        success: 0,
+                        flagId: this.flagId
+                    }
+
+                }).then(res => {
+                    if(res.status==200){
+                        this.prizeList = res.prize_list
+                        this.settingState = CONFIG.settingStateMap.end;
+                    }
+                })
+            },
+
+            configNextFlag(){
+                this.settingState = CONFIG.settingStateMap.unstart;
+                Object.assign(this.$data, this.$options.data());
+                this.getAnchorMsg();
+            },
+
+            testSdk() {
+                hyExt.observer.emit('foo', 'foo');
+            },
+
+            getCheckBox: function (res) {
                 console.log(res);
             }
 
@@ -447,24 +559,35 @@
         display: flex;
         flex-direction: column;
         background-color: #173b32;
+
+        color: #f5d090;
+
+        .bg_title {
+
+            width: 100%;
+            background-color: #173b32;
+            top: 0;
+
+            .title {
+                width: auto;
+                height: auto;
+                max-height: 100%;
+                max-width: 100%;
+                z-index: 0;
+                user-select: none;
+            }
+        }
     }
 
-
-    #index .anchor_bg{
+    .bg-panel{
+        background-image: url("./../assets/img/bg_02.gif");
         width: 100%;
-        height: 1500px;
-        background-color: #173b32;
-        position: absolute;
-        top: 0;
-
-        .bg{
-            width: auto;
-            height: auto;
-            max-width: 100%;
-            max-height: 100%;
-            z-index: 0;
-            user-select: none;
-        }
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 400px;
+        padding: 20px 0;
+        padding-right: 5px;
     }
 
     .form-data {
@@ -474,12 +597,15 @@
         /*padding: 12px 10px;*/
         /*background-color: rgba(255, 255, 255, 0.4);*/
         /*margin-bottom: 20px;*/
-        position: relative;
-        top: 280px;
         display: flex;
         flex-direction: column;
         padding: 20px auto;
         color: #f5d090;
+
+        .set-panel{
+            width: 100%;
+            color: #f5d090;
+        }
     }
 
     label {
@@ -487,7 +613,7 @@
         margin: 0 10px;
     }
 
-    .flag-content{
+    .flag-content {
         display: flex;
         flex-direction: row;
         align-items: center;
@@ -497,14 +623,14 @@
         }
     }
 
-    .time-wrapper{
+    .time-wrapper {
         display: flex;
         flex-direction: row;
         align-items: center;
         vertical-align: middle;
         margin-top: 20px;
 
-        .time{
+        .time {
             padding: 5px 7px;
             margin: 0 5px;
             border-left: 1px solid #cccccc;
@@ -512,7 +638,7 @@
             letter-spacing: 1px;
         }
 
-        .wrapper{
+        .wrapper {
             display: flex;
             flex-direction: row;
             background-color: white;
@@ -522,7 +648,7 @@
             vertical-align: middle;
             color: black;
 
-            .time-icon{
+            .time-icon {
                 font-size: 20px;
                 color: #747575;
             }
@@ -566,13 +692,13 @@
 
     }
 
-    .prize-container{
+    .prize-container {
         display: flex;
         flex-direction: column;
         margin-top: 5px;
     }
 
-    .add-btn{
+    .add-btn {
         display: flex;
         flex-direction: row;
         align-items: center;
@@ -580,10 +706,10 @@
         cursor: pointer;
         background-color: #90cade;
         padding: 6px;
-        width:95%;
+        width: 95%;
     }
 
-    .options-setting{
+    .options-setting {
 
         margin: 3px 0 10px 10px;
         color: black;
@@ -609,7 +735,6 @@
             word-wrap: break-word;
             word-break: break-all;
 
-
             .option-icon {
                 font-size: 20px;
                 padding-right: 8px;
@@ -618,9 +743,9 @@
                 color: #747575;
             }
 
-            .option-container{
+            .option-container {
                 display: block;
-                span{
+                span {
                     color: black;
                     font-weight: 600;
                     font-size: 15px;
@@ -629,7 +754,6 @@
             }
         }
     }
-
 
     .other-options {
         margin-top: 10px;
@@ -640,13 +764,13 @@
             padding-left: 10px;
             margin-top: 7px;
         }
-        .checkbox-style{
+        .checkbox-style {
             color: white;
         }
-        .order-content-style{
+        .order-content-style {
 
             margin-top: 10px;
-            .order-input{
+            .order-input {
                 margin-top: 10px;
                 margin-left: 10px;
                 width: 90%;
@@ -655,44 +779,39 @@
 
     }
 
-    .btn_wrapper{
+    .btn_wrapper {
         //width: size(680px); //暂时调整样式
         margin-top: 20px;
         display: flex;
         justify-content: space-around;
     }
 
-    .count_down_panel{
-        position: relative;
-        top: 280px;
+    .count_down_panel {
         display: flex;
         flex-direction: column;
         padding: 20px auto;
         color: #f5d090;
 
-
-        .ready_content{
+        .ready_content {
 
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
 
-            .tip_ready{
+            .tip_ready {
                 margin: 0 auto;
                 font-size: 30px;
             }
 
-            .count_ready{
+            .count_ready {
                 font-size: 35px;
             }
         }
 
     }
 
-    .live_info_panel{
-        position: relative;
-        top: 280px;
+    .live_info_panel {
         display: flex;
         flex-direction: column;
         padding: 20px auto;
@@ -700,18 +819,83 @@
         align-items: center;
         justify-content: center;
 
-        .live_info_show{
+        .live_info_show {
             font-size: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
 
-            .flag-content{
+            .flag-content {
                 font-size: 33px;
                 margin-bottom: 10px;
                 width: 90%;
             }
+        }
+
+    }
+
+    .bt-vote {
+
+        display: flex;
+        width: 100%;
+        padding: 10px 10px;
+        margin: 10px 0;
+        border: 1px solid red;
+        border-radius: 2px;
+
+    }
+
+    .result_panel{
+        display: flex;
+        flex-direction: column;
+        padding: 20px auto;
+        color: #f5d090;
+        align-items: center;
+    }
+
+    .panel-main {
+        display: flex;
+        flex-direction: column;
+        padding: 20px 20px;
+        align-items: center;
+
+        .flag-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 90%;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .prize-header{
+            width: 90%;
+            margin: 0 auto;
+            margin-top: 20px;
+            padding-bottom: 10px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            font-size: 18px;
+            font-weight: 300;
+            border-bottom: 1px solid #f5d090;
+        }
+
+        .prize-list {
+            width: 90%;
+            margin: 10px auto;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            font-size: 17px;
+            font-weight: 300;
+        }
+
+        .config-bt{
+            margin-top: 30px;
         }
 
     }

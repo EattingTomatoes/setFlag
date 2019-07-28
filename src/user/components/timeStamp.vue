@@ -3,19 +3,11 @@
         <div class="time_line_box">
             <div class="time_line" style="width:90%;">
                 <ol>
-                    <li>
-                        <a-popover content="人数达到100送出千年知乎100个">
-                            <a class="order_item selected" style="left:20%;">奖品一</a>
+                    <li v-for="(msg,index) in prizeContent" v-bind:key="">
+                        <a-popover :content="msg.type">
+                            <a class="order_item" :class="{selected: msg.count<=totalCount}"
+                               :style="{left: (msg.count/finalCount)*100 + '%'}">{{showStep[index]}}</a>
                         </a-popover>
-                    </li>
-                    <li>
-                        <a class="order_item selected" style="left:40%;">奖品二</a>
-                    </li>
-                    <li>
-                        <a class="order_item" style="left:60%;">奖品三</a>
-                    </li>
-                    <li>
-                        <a class="order_item" style="left:80%;">奖品四</a>
                     </li>
                 </ol>
                 <span class="filling_line" :style="styleObject"></span>
@@ -28,21 +20,48 @@
     export default {
         name: "timeStamp",
         props:{
-            // prizeMsg:{
-            //     type: Array,
-            //     required: true
-            // },
-
+            prizeMsg:{
+                type: Array,
+                required: true
+            },
         },
         data(){
             return{
                 styleObject: {
                     fontSize: '20px',
                     transform: 'scaleX(0.22)'
-                }
+                },
+                processedPrizeContent:[],
+                showStep:['A','B','C','D','E'],
+                finalCount: 1,
+                totalCount: 200,
             }
         },
-        methods:{
+        computed:{
+            prizeContent(){
+                if(this.prizeMsg.length!=0){
+                    this.finalCount = this.prizeMsg[this.prizeMsg.length-1].votesCount;
+                    this.processedPrizeContent = this.prizeMsg.map(item => {
+                        return {
+                            type: "达到" + item.votesCount + "票,送出" + item.prizeType + "共"
+                            + item.prizeCount + "份",
+                            count: item.votesCount
+                        }
+                    });
+
+                    this.styleObject = {
+                        fontSize: '20px',
+                        transform: 'scaleX(' + this.totalCount/this.finalCount + ')'
+                    };
+                    this.selectedClass = this.selectedClass
+                    console.log(this.prizeMsg);
+                    return this.processedPrizeContent;
+                }
+
+            },
+            lineContent(){
+
+            }
 
         }
     }
@@ -91,8 +110,8 @@
     .selected:after{
         background-color: #ffba4a;
         border-color: #ffba4a;
-        height: 12px;
-        width: 12px;
+        height: 13px;
+        width: 13px;
     }
     .filling_line{
         position: absolute;

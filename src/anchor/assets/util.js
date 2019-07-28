@@ -11,7 +11,7 @@ var util = {
             param: {extUuid, ...param},
             port: port,
             httpMethod: method,
-            path: `/vent/api/hysetflag/${service}`
+            path: `/api/hysetflag/${service}`
         }
 
         console.log('请求', requestParam);
