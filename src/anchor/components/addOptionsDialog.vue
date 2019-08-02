@@ -13,7 +13,6 @@
                     </select>
                 </div>
             </div>
-            <toast></toast>
             <div class="ok-btn" @click="saveOption">完成</div>
         </div>
 
@@ -66,19 +65,19 @@
                     return;
                 }
 
-                // console.log('原来的选项',this.choosedOptionList);
-                // if(this.choosedOptionList){
-                //     console.log(this.choosedOptionList);
-                //     const LessThanOthers = this.choosedOptionList.some(item => {
-                //         if(parseInt(item.votesCount) >= parseInt(submitVoteCount)){
-                //             return true;
-                //         }
-                //     });
-                //     if(LessThanOthers){
-                //         util.showToast("当前投票数不低于原先的票数");
-                //         return;
-                //     }
-                // }
+                console.log('原来的选项',this.choosedOptionList);
+                if(this.choosedOptionList){
+                    console.log(this.choosedOptionList);
+                    const LessThanOthers = this.choosedOptionList.some(item => {
+                        if(parseInt(item.votesCount) >= parseInt(submitVoteCount)){
+                            return true;
+                        }
+                    });
+                    if(LessThanOthers){
+                        util.showToast("当前投票数不低于原先的票数");
+                        return;
+                    }
+                }
 
                 eventBus.$emit('saveOption',{
                     votesCount: this.votesCount,

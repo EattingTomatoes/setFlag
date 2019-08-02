@@ -24,6 +24,14 @@
                 type: Array,
                 required: true
             },
+            objectCount:{
+                type: Number,
+                required: true
+            },
+            supportCount:{
+                type: Number,
+                required: true
+            }
         },
         data(){
             return{
@@ -34,7 +42,7 @@
                 processedPrizeContent:[],
                 showStep:['A','B','C','D','E'],
                 finalCount: 1,
-                totalCount: 200,
+                totalCount: 1,
             }
         },
         computed:{
@@ -48,12 +56,11 @@
                             count: item.votesCount
                         }
                     });
-
+                    this.totalCount = this.supportCount + this.objectCount;
                     this.styleObject = {
                         fontSize: '20px',
                         transform: 'scaleX(' + this.totalCount/this.finalCount + ')'
                     };
-                    this.selectedClass = this.selectedClass
                     console.log(this.prizeMsg);
                     return this.processedPrizeContent;
                 }
@@ -72,6 +79,7 @@
         position: relative;
         height: 60px;
         overflow: hidden;
+        bottom: 20px;
     }
     .time_line{
         position: absolute;

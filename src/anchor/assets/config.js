@@ -5,7 +5,7 @@
     maxSettingActionTime: 24,
     defaultActionTime: 3,
     extUuid: '',
-    baseUrl: isDebug ? '' : 'z.cn',
+    baseUrl: isDebug ? '' : 'weixiaoyuan.xyz',
     port: isDebug ? 17050 : 80,
     settingStateMap: {
         unstart: 0,
@@ -14,18 +14,17 @@
         end: 3
     },
      voteContent:{
-        support: "我jio得主播可以完成",
-         object: "我jio得主播不能完成"
+        support: "我觉得主播可以完成",
+         object: "我觉得主播够呛"
      },
      tabs:{
          fontSize: '20px',
          color: '#f5d090',
          display: 'flex',
          alignItems: 'center',
-         marginLeft: '30px',
-         marginRight: '30px',
          fontWeight: '300',
-         paddingLeft: '25px'
+         paddingLeft: '18px',
+         width: '300px'
      }
 };
 

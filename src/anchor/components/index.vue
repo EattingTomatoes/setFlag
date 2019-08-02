@@ -1,6 +1,5 @@
 <template>
     <div id="index">
-
         <div class="bg_title">
             <img class="title" src="./../assets/img/bg_01.gif"/>
         </div>
@@ -16,14 +15,14 @@
                             <div class="flag-content">
                                 <label>Flag内容</label>
                                 <div class="content">
-                                    <a-input type="text" style="padding-left: 10px" size="default"
-                                             v-model="flagContent"></a-input>
+                                    <a-input type="text" style="padding-left: 10px; width: 160px" size="small"
+                                             v-model="flagContent" maxlength="15"></a-input>
                                 </div>
                                 <!--<input type="text" v-model="flagContent" class="form-control"/>-->
                             </div>
 
                             <div class="time-wrapper">
-                                <label class="desc">投票时长</label>
+                                <label style="width: 72px">投票时长</label>
                                 <div class="wrapper">
                                     <a-icon type="minus" class="time-icon" @click="reduceActionTime"></a-icon>
                                     <p class="time">
@@ -35,17 +34,17 @@
 
                             <div class="vote-options">
                                 <div class="vote-title">
-                                    <label>投票选项</label>
+                                    <label style="width:68px">投票选项</label>
                                 </div>
                                 <div v-if="isSettingSelf='default'" class="vote-option">
                                     <div class="option-content">
                                         <div>
                                             <a-input type="text" class="option-support" addonBefore="支持票"
-                                                     v-model="voteContent.support"/>
+                                                     v-model="voteContent.support" size="small" maxlength="15"/>
                                         </div>
                                         <div>
                                             <a-input type="text" class="option-object" addonBefore="反对票"
-                                                     v-model="voteContent.object"/>
+                                                     v-model="voteContent.object" size="small" maxlength="15"/>
                                         </div>
                                     </div>
                                 </div>
@@ -90,7 +89,7 @@
                                 <label>口令内容</label>
                                 <!--<div :click="addOrder" class="add-btn">+添加口令</div>-->
                                 <a-input class="order-input" v-model="orderContent" type="text"
-                                         placeholder="如:整条街我靓仔"></a-input>
+                                         placeholder="如:整条街我靓仔" maxlength="15"></a-input>
                             </div>
                         </div>
 
@@ -106,20 +105,29 @@
                 </a-tab-pane>
                 <a-tab-pane key="2">
                     <span slot="tab">主播记录</span>
+                    <div class="table-style">
+                        <div class="table-list1">
+                            <div class="table-title1"><span>历史记录</span></div>
+                            <div class="table-record">
+                                <div class="record-list" v-for="item in anchorRecord" v-bind:key="">
+                                    {{item.flagContent}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-list2">
+                            <div class="table-title2"><span>是否成功</span></div>
+                            <div class="table-record">
+                                <div class="record-list" v-for="item in recordState" v-bind:key="">
+                                        <span :class="{fail: item==0}">
+                                            {{item==0?'失败':'成功'}}
+                                        </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </a-tab-pane>
             </a-tabs>
 
-            <!--<button type="button" @click="testSdk">测试</button>-->
-
-            <!--<div id="preview" style="color: white">-->
-                <!--<h3>浏览</h3>-->
-                <!--<p>{{flagContent}}</p>-->
-                <!--<p>{{orderContent}}</p>-->
-                <!--<p>{{voteContent}}</p>-->
-                <!--<p>{{actionTime}}</p>-->
-                <!--<p v-for="choosedOption in choosedOptions">{{choosedOption}}</p>-->
-                <!--<p v-for="otherOption in otherOptions">{{otherOption}}</p>-->
-            <!--</div>-->
 
         </div>
 
@@ -136,13 +144,19 @@
                 <p v-if="voteIsStart&&!voteIsEnd">距投票还剩
                     <span>{{time.hours}}</span> 时 <span>{{time.minute}}</span> 分 <span>{{time.second}}</span> 秒</p>
                 <p v-if="voteIsEnd" style="color:red">投票已结束</p>
-                <div>
-                    <p>支持票</p>
-                    <p>反对票</p>
-                </div>
                 <div v-if="voteIsEnd">
-                    <div class="bt-vote" @click="submitResult1">从投"支持票"中抽奖</div>
-                    <div class="bt-vote" @click="submitResult2">从投"反对票"中抽奖</div>
+                    <div class="vote-style">
+                        <div class="support-container">
+                            <div class="support-sp">支持票</div>
+                            <div class="support-count">{{supportVoteCount}}</div>
+                        </div>
+                        <div class="object-container">
+                            <div class="object-sp">反对票</div>
+                            <div class="object-count">{{objectVoteCount}}</div>
+                        </div>
+                    </div>
+                    <a-button @click="submitResult1">从投"支持票"中抽奖</a-button>
+                    <a-button @click="submitResult2">从投"反对票"中抽奖</a-button>
                 </div>
             </div>
         </div>
@@ -159,6 +173,11 @@
                 <div class="prize-list" v-for="prizeMsg in prizeList">
                     <span>{{prizeMsg.user_id}}</span>
                     <span>{{prizeMsg.user_name}}</span>
+                </div>
+                <div v-if="showNonePrize" class="no-prize">
+                    <span>本次投票未达到目标,</span>
+                    <span>下次设置少点票数,</span>
+                    <span>说不定人气更旺哦~</span>
                 </div>
                 <div class="config-bt">
                     <a-button @click="configNextFlag">配置下一个FLag</a-button>
@@ -177,17 +196,16 @@
 </template>
 
 <script>
-    import ARadioGroup from "ant-design-vue/es/radio/Group";
     import CONFIG from "./../assets/config";
-    import OptionSetting from "./optionSetting";
     import util from "./../assets/util"
     import eventBus from "../assets/eventBus"
     import AddOptionsDialog from "./addOptionsDialog";
+    import VoteProgress from "./voteProgress";
     import Toast from "./toast";
 
     export default {
         name: 'Index',
-        components: {Toast, AddOptionsDialog},
+        components: {Toast, AddOptionsDialog, VoteProgress},
         props: {
             msg: String
         },
@@ -206,6 +224,12 @@
                 voteContent: CONFIG.voteContent,
                 time: {hours: '', minute: '', second: ''},
                 styleObject: CONFIG.tabs,
+                showNone: 0,
+                saveAllOptions: false,
+                supportVoteCount:0,
+                objectVoteCount: 0,
+                anchorRecord:[],
+                recordState:[],
 
                 //提交主播配置项
                 anchorMsg: {},
@@ -218,6 +242,7 @@
                 otherOptions: [],
                 orderContent: '',
                 prizeList: [],
+                allConfig:null,
             }
         },
         created() {
@@ -237,24 +262,24 @@
                         prizeCount: prizeCount,
                     });
 
-                    var compare = function (prop) {
-                        return function (obj1, obj2) {
-                            var val1 = obj1[prop];
-                            var val2 = obj2[prop];
-                            if (!isNaN(Number(val1)) && !isNaN(Number(val2))) {
-                                val1 = Number(val1);
-                                val2 = Number(val2);
-                            }
-                            if (val1 < val2) {
-                                return -1;
-                            }
-                            else if (val1 > val2) {
-                                return 1;
-                            }
-                            return 0;
-                        }
-                    };
-                    this.choosedOptions.sort(compare('votesCount'));
+                    // var compare = function (prop) {
+                    //     return function (obj1, obj2) {
+                    //         var val1 = obj1[prop];
+                    //         var val2 = obj2[prop];
+                    //         if (!isNaN(Number(val1)) && !isNaN(Number(val2))) {
+                    //             val1 = Number(val1);
+                    //             val2 = Number(val2);
+                    //         }
+                    //         if (val1 < val2) {
+                    //             return -1;
+                    //         }
+                    //         else if (val1 > val2) {
+                    //             return 1;
+                    //         }
+                    //         return 0;
+                    //     }
+                    // };
+                    // this.choosedOptions.sort(compare('votesCount'));
 
                 })
             });
@@ -274,6 +299,26 @@
             showResultPanel() {
                 return this.settingState == CONFIG.settingStateMap.end;
             },
+            showNonePrize(){
+                return this.showNone;
+            },
+            getSpportPecent() {
+                var total = this.supportVoteCount + this.objectVoteCount;
+                console.log("dedede",total)
+                if (!total) return 0;
+                var takePecent = this.supportVoteCount / total;
+                var intTake = takePecent * 100;
+                return intTake;
+            },
+
+            getObectPecent() {
+                var total = this.supportVoteCount + this.objectVoteCount;
+                console.log("dedede",total)
+                if (!total) return 0;
+                var takePecent = this.objectVoteCount / total;
+                var intTake = takePecent * 100;
+                return intTake;
+            }
         },
 
         methods: {
@@ -295,9 +340,8 @@
 
                 util.hy_request(questParam)
                     .then(res => {
-                        if (res.status === 200 && res.data) {
+                        if (res.status === 200 && res.data.length) {
 
-                            console.log(res.data);
                             var configOptions = JSON.parse(res.data[0]['config_content']);
                             this.actionTime = configOptions.limitedTime;
                             this.acheiveTime = configOptions.acheiveTime;
@@ -307,25 +351,42 @@
                             this.orderContent = configOptions.orderContent;
                             this.flagContent = configOptions.flagContent;
                             this.flagId = res.data[0]['flag_id'];
+                            console.log(res)
 
-
-                            if(res.hasResult) {
-                                if(res.data[0].flag_state==0){
+                            if (res.hasResult) {
+                                this.supportVoteCount = res.data[1].support_count;
+                                this.objectVoteCount = res.data[1].object_count;
+                                if (res.data[0].flag_state == 0) {
                                     this.settingState = CONFIG.settingStateMap.liveInfo;
                                     this.startVoteTimeCountDown();
                                 }
 
-                                else if(res.data[0].flag_state==1){
+                                else if (res.data[0].flag_state == 1) {
                                     this.prizeList = JSON.parse(res.data[0]['prize_list']);
                                     this.settingState = CONFIG.settingStateMap.end;
                                 }
                             }
-                            else{
-                                this.settingState = CONFIG.settingStateMap.unstart;
-                            }
 
                         }
                     })
+            },
+
+            getAnchorHistory(){
+                util.hy_request({
+                    service: 'getHistory',
+                    method: 'GET'
+                }).then(res =>{
+                    if(res.status==200){
+                        this.anchorRecord = res.data;
+                        this.recordState = res.state;
+                    }
+                })
+            },
+
+            checkContent(e){
+                if(this.flagContent.length>15){
+                    util.showToast("输入的Flag内容不能超过15个字！")
+                }
             },
 
             //注册结果的一个监听按钮。有消息源就触发
@@ -334,7 +395,6 @@
                     res = JSON.parse(res);
                     this.getLastVoteResult(this.flagId);
                     this.settingState = CONFIG.settingStateMap.end;
-                    console.log("推送结果完毕", res)
                 })
 
             },
@@ -371,7 +431,7 @@
                     }
                 });
 
-                this.acheiveTime = new Date().getTime() + this.actionTime*3600*1000;
+                this.acheiveTime = new Date().getTime() + this.actionTime * 3600 * 1000;
 
                 var submitValue = {
                     flagContent: util.xssFilter(this.flagContent),
@@ -383,6 +443,8 @@
                     orderContent: this.orderContent,
                 };
 
+                this.allConfig = submitValue;
+
                 var that = this;
                 util.hy_request({
                     service: 'saveConfig',
@@ -392,20 +454,23 @@
                         options: JSON.stringify(submitValue)
                     }
                 }).then(res => {
-                    console.log('dede', res);
                     if (res.status == 200 && res.flag_id) {
                         this.flagId = res.flag_id;
+                        this.saveAllOptions = true;
                         util.showToast('已成功保存');
                     } else {
                         util.showToast(res.msg);
                     }
-
-                    console.log('保存结果', res);
                 });
             },
 
 
             startAction() {
+
+                if(!this.saveAllOptions){
+                    util.showToast('请先保存设置~');
+                    return;
+                }
 
                 if (!(this.flagContent && this.actionTime && this.choosedOptions.length
                     && this.voteContent.object && this.voteContent.support)) {
@@ -428,14 +493,15 @@
                     }
                 }).then(res => {
                     console.log(res);
-                    if(res.status === 200){
-                        console.log('启动成功');
+                    if (res.status === 200) {
+                        this.allConfig.flagId = this.flagId;
+                        hyExt.observer.emit('start_flag',JSON.stringify(this.allConfig));
+                        console.log(JSON.stringify(this.allConfig));
                         this.startReadyTimeCountDown();
                     }
                     else {
                         util.showToast(res.msg);
                     }
-                    console.log('正在启动', res);
                 })
 
             },
@@ -461,13 +527,14 @@
                 this.voteIsStart = true;
                 this.voteCountDownNum = this.acheiveTime;
                 var that = this;
+                var updateCounts= 0;
                 if (this.voteIsStart && !this.voteIsEnd) {
-
                     this.curTimer = setInterval(() => {
                         if (that.voteCountDownNum - new Date().getTime() > 0) {
                             var curTime = util.SecondToData(that.voteCountDownNum);
                             this.initFormate(curTime);
                             this.initFormate(curTime);
+                            updateCounts++;
                         }
                         else {
                             that.voteIsEnd = true;
@@ -475,8 +542,20 @@
                         }
                     }, 1000);
                 }
+                this.updateVoteCount();
+            },
 
-                console.log(this.voteCountDownNum);
+            updateVoteCount(){
+                util.hy_request({
+                    service: 'backVoteCount',
+                    method: 'GET',
+                    param:{
+                        flagId: this.flagId
+                    }
+                }).then(res => {
+                    this.supportVoteCount = res.support_count;
+                    this.objectVoteCount = res.object_count;
+                })
             },
 
             initFormate(curTime) {
@@ -488,16 +567,13 @@
             getAnchorMsg() {
                 var that = this;
                 hyExt.context.getUserInfo().then(userInfo => {
-                    console.log('Youngso1', that.anchorMsg);
                     that.anchorMsg = userInfo;
-                    console.log('Youngso2', that.anchorMsg);
-                    hyExt.logger.info('获取用户信息成功', userInfo.userNick)
                 }).catch(err => {
                     hyExt.logger.warn('获取用户信息失败');
                 });
             },
 
-            submitResult1(){
+            submitResult1() {
                 util.hy_request({
                     service: 'prizeDraw',
                     param: {
@@ -506,15 +582,20 @@
                     }
 
                 }).then(res => {
-                    if(res.status==200){
-                        this.prizeList = res.prize_list
+                    if (res.status == 200) {
+                        this.prizeList = res.prize_list;
+                        if (!res.res) {
+                            this.showNone = 1;
+                        }
+                        hyExt.observer.emit('prize_draw_finish',JSON.stringify(res.prize_list));
+                        console.log(JSON.stringify(res.prize_list));
                         this.settingState = CONFIG.settingStateMap.end;
                     }
                 })
 
             },
 
-            submitResult2(){
+            submitResult2() {
                 util.hy_request({
                     service: 'prizeDraw',
                     param: {
@@ -523,25 +604,23 @@
                     }
 
                 }).then(res => {
-                    if(res.status==200){
-                        this.prizeList = res.prize_list
+                    if (res.status == 200) {
+                        this.prizeList = res.prize_list;
+                        if (!res.res) {
+                            console.log("re", res);
+                            this.showNone = 1;
+                        }
+                        hyExt.observer.emit('prize_draw_finish',JSON.stringify(res.prize_list));
                         this.settingState = CONFIG.settingStateMap.end;
                     }
                 })
             },
 
-            configNextFlag(){
+            configNextFlag() {
                 this.settingState = CONFIG.settingStateMap.unstart;
                 Object.assign(this.$data, this.$options.data());
                 this.getAnchorMsg();
-            },
-
-            testSdk() {
-                hyExt.observer.emit('foo', 'foo');
-            },
-
-            getCheckBox: function (res) {
-                console.log(res);
+                this.getAnchorHistory();
             }
 
         }
@@ -579,7 +658,7 @@
         }
     }
 
-    .bg-panel{
+    .bg-panel {
         background-image: url("./../assets/img/bg_02.gif");
         width: 100%;
         display: flex;
@@ -602,15 +681,16 @@
         padding: 20px auto;
         color: #f5d090;
 
-        .set-panel{
+        .set-panel {
             width: 100%;
             color: #f5d090;
         }
     }
 
     label {
-        font-size: 17px;
-        margin: 0 10px;
+        font-size: 15px;
+        margin: 0 0 0 10px;
+        width: 25%;
     }
 
     .flag-content {
@@ -631,11 +711,12 @@
         margin-top: 20px;
 
         .time {
-            padding: 5px 7px;
+            padding: 2px 7px;
             margin: 0 5px;
             border-left: 1px solid #cccccc;
             border-right: 1px solid #cccccc;
             letter-spacing: 1px;
+            height: 25px;
         }
 
         .wrapper {
@@ -644,12 +725,13 @@
             background-color: white;
             border-radius: 5px;
             padding: 0 10px;
+            height: 25px;
             align-items: center;
             vertical-align: middle;
             color: black;
 
             .time-icon {
-                font-size: 20px;
+                font-size: 18px;
                 color: #747575;
             }
         }
@@ -686,6 +768,8 @@
 
             div {
                 margin-bottom: 10px;
+                width: 180px;
+                font-size:15px;
             }
 
         }
@@ -695,7 +779,6 @@
     .prize-container {
         display: flex;
         flex-direction: column;
-        margin-top: 5px;
     }
 
     .add-btn {
@@ -711,7 +794,7 @@
 
     .options-setting {
 
-        margin: 3px 0 10px 10px;
+        margin: 0 0 10px 10px;
         color: black;
 
         .bd-callout {
@@ -831,6 +914,51 @@
                 margin-bottom: 10px;
                 width: 90%;
             }
+
+            .vote-style{
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
+                margin-bottom: 20px;
+
+                .support-container{
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding-right: 30px;
+                    border-right: 1px solid #f5d090;
+
+                    .support-sp{
+                        font-size: 22px;
+                        font-weight: 500;
+                    }
+
+                    .support-count{
+                        font-size: 20px;
+                        font-weight: 300;
+                    }
+
+                }
+
+                .object-container{
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    padding-left: 30px;
+
+                    .object-sp{
+                        font-size: 22px;
+                        font-weight: 500;
+                    }
+
+                    .object-count{
+                        font-size: 20px;
+                        font-weight: 300;
+                    }
+                }
+            }
         }
 
     }
@@ -846,7 +974,7 @@
 
     }
 
-    .result_panel{
+    .result_panel {
         display: flex;
         flex-direction: column;
         padding: 20px auto;
@@ -871,7 +999,7 @@
             font-weight: 600;
         }
 
-        .prize-header{
+        .prize-header {
             width: 90%;
             margin: 0 auto;
             margin-top: 20px;
@@ -894,9 +1022,89 @@
             font-weight: 300;
         }
 
-        .config-bt{
+        .no-prize {
+            width: 90%;
+            margin: 10px auto;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            justify-content: space-around;
+            font-size: 20px;
+            font-weight: 300;
+        }
+
+        .config-bt {
             margin-top: 30px;
         }
 
+    }
+
+    .table-style{
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+
+        .table-list1{
+            display: flex;
+            flex-direction: column;
+            width: 56%;
+            margin-left: 5%;
+
+            .table-title1{
+                width: 90%;
+                font-size: 18px;
+                font-weight: 300;
+                text-align: center;
+                margin: 7px 0;
+                color: #c9bc97;
+            }
+
+            .table-record{
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                margin-top: 10px;
+
+                .record-list{
+                    margin: 5px 5px;
+                    color: white;
+                    width: 90%;
+                    word-wrap: break-word;
+                    text-align: center;
+                }
+            }
+        }
+
+        .table-list2{
+            display: flex;
+            flex-direction: column;
+            width: 30%;
+
+            .table-title2{
+                width: 100%;
+                font-size: 18px;
+                font-weight: 300;
+                text-align: center;
+                margin: 7px 0;
+                color: #c9bc97;
+            }
+
+            .table-record{
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                margin-top: 10px;
+
+                .record-list{
+                    display: flex;
+                    text-align: center;
+                    align-items: center;
+                    justify-content: center;
+                    color: deepskyblue;
+                    height: 100%;
+
+                }
+            }
+        }
     }
 </style>

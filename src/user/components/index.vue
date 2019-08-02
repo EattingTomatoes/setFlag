@@ -1,147 +1,149 @@
 <template>
     <div class="index">
-        <vue-scroll :ops="ops" style="width: 100%; height: 600px">
-            <!--小程序名称，不用动-->
-            <div class="bg_title">
-                <img class="title" src="./../assets/img/bg_01.gif"/>
-            </div>
-            <!--面板切换-->
-            <div class="live-panel">
-                <div class="user-msg">
-                    <span>您当前拥有的投票数为{{keepVotes}}票</span>
-                </div>
-                <div class="tabs-panel">
-                    <a-tabs defaultActiveKey="1" :tabBarStyle="styleObject">
-                    <a-tab-pane key="1">
-                        <span style="font-size: 20px" slot="tab">
-                            <span style="margin-right: 10px">主播Flag</span>
-                            <img @click="showRule" style="width: 20px; height: 20px;" src="./../assets/img/q_icon.png">
-                        </span>
-                        <div v-if="showUnstartPanel" style="color: #f5d090">
-                            <div v-if="lastVote" class="non-flag">该主播还没有Flag,<br>敬请期待</div>
-                            <div v-else>
-                                <div class="last-vote">
-                                    <table width="350px" height="100px" rules="all">
-                                        <tr>
-                                            <td align="center" colspan="3">上一期：今晚不上王者不睡觉</td>
-                                        </tr>
-                                        <tr>
-                                            <td align="center" colspan="3">中奖名单</td>
-                                        </tr>
-                                        <tr>
-                                            <td align="center">22</td>
-                                            <td align="center" colspan="2">222</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div v-if="showLivingPanel" style="color: #f5d090">
-                            <div class="panel-main">
-                                <div class="flag-content">
-                                    <span style="font-size: 20px; font-weight: 300">{{lastVote.anchor_name}}说:</span>
-                                    <span>{{flagConfig.flagContent}}</span>
-                                </div>
-                            </div>
-
-                            <div class="vote-container">
-                                <div class="time-stamp">
-                                    <time-stamp :prize-msg="flagConfig.choosedOptions?flagConfig.choosedOptions:[]"></time-stamp>
-                                </div>
-                                <div class="show-action-time">
-                                    <p v-if="voteIsStart&&!voteIsEnd">距结束还剩
-                                        <span>{{hours}}</span> 时 <span>{{minute}}</span> 分 <span>{{second}}</span> 秒</p>
-                                    <p v-if="voteIsEnd" style="color:red">投票已经结束，等待主播开奖！！</p>
-                                </div>
-
-                            </div>
-
-                            <div class="vote-options">
-                                <a-radio-group size="small" style="width: 100%" v-model="choosedVote">
-                                    <div class="support-vote">
-                                        <span style="color: #f5d090">支持票|&nbsp;我觉得可以</span>
-                                        <div class="options">
-                                            <vote-progress type="support" :value="getSpportPecent"></vote-progress>
-                                        </div>
-                                    </div>
-                                    <div class="object-vote">
-                                        <span style="color: #f5d090">反对票|&nbsp;我觉得还不行</span>
-                                        <div class="options">
-                                            <vote-progress type="object" :value="getObectPecent"></vote-progress>
-                                        </div>
-                                    </div>
-                                </a-radio-group>
-                                <div class="bt-container">
-                                    <div class="o-bt">
-                                        <img @click="confirmObjectVote" class="bt-style" src="./../assets/img/object_bt.png"/>
-                                        <span class="o-cha-bt">不支持</span>
-                                    </div>
-                                    <div class="s-bt">
-                                        <img @click="confirmSupportVote" class="bt-style" src="./../assets/img/support_bt.png"/>
-                                        <span class="s-cha-bt">支持</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div v-if="showResultPanel" style="color: #f5d090">
-                            <div class="last-vote">
-                                <table width="350px" height="100px" rules="all">
-                                    <tr>
-                                        <td align="center" colspan="3">中奖名单</td>
-                                    </tr>
-                                    <tr>
-                                        <td align="center">22</td>
-                                        <td align="center" colspan="2">222</td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                    </a-tab-pane>
-                    <a-tab-pane key="2">
-                        <span style="font-size: 20px;" slot="tab">主播记录</span>
-                        <div>
-                            <div class="table-titles">
-                                <div class="table-title">
-                                    <span>历史Flag</span>
-                                    <span>是否成功</span>
-                                </div>
-                            </div>
-                            <div class="table-lists" v-for="item in flagRecords">
-                                <div class="table-list">
-                                    <span>"这把吃鸡我稳定输出"</span>
-                                    <span>失败</span>
-                                </div>
-                            </div>
-                        </div>
-                    </a-tab-pane>
-                </a-tabs>
+        <!--小程序名称，不用动-->
+        <div class="bg_title">
+            <img class="title" src="./../assets/img/bg_01.gif"/>
+        </div>
+        <!--面板切换-->
+        <div class="live-panel">
+            <div class="user-msg">
+                <span>您当前拥有的投票数为
+                    <span style="font-weight: 600; margin: 0 3px">{{keepVotes}}</span>票
+                </span>
+                <div>
+                    <span @click="toScribe" class="get-sp">订阅</span>
+                    <span @click="toGift" class="get-sp">送礼</span>
+                    <span @click="toSendBarrage" class="get-sp">发弹幕</span>
                 </div>
             </div>
+            <div class="tabs-panel">
+                <a-tabs defaultActiveKey="1" :tabBarStyle="styleObject">
+                <a-tab-pane key="1">
+                    <span style="font-size: 20px" slot="tab">
+                        <span style="margin-right: 10px;">主播Flag</span>
+                        <img @click="showRule" style="width: 20px; height: 20px;" src="./../assets/img/q_icon.png">
+                    </span>
+                    <div v-if="showUnstartPanel" style="color: #f5d090">
+                        <div class="non-flag">该主播还没有Flag,<br>敬请期待</div>
+                    </div>
+                    <div v-if="showLivingPanel" style="color: #f5d090">
+                        <div class="panel-main">
+                            <div class="flag-content">
+                                <span style="font-size: 20px; font-weight: 300">{{lastVote.anchor_name}}说:</span>
+                                <span>{{flagConfig.flagContent}}</span>
+                            </div>
+                            <div>
+                                <img @click="showMoreFun" class="other-fun" src="./../assets/img/model_icon.png"/>
+                            </div>
 
-            <div v-if="showRuleToast" class="rule-toast">
-                <div class="rule-container">
-                    <span class="rule-title">规则说明</span>
-                    <ul>
-                        <li>Q:&nbsp;如何获取选票</li>
-                        <li>A:&nbsp;订阅+1票,发送弹幕、送礼物都有可能随机掉票哦~</li>
-                        <li>Q: 主播Flag内容右上角那个是什么？</li>
-                        <li>A：主播开启的娱乐模式。有"主播口令"（按主播口令内容发送弹幕前100位送出选票）
-                            、"最后一分钟加速"(即倒计时一分钟刷弹幕刷礼物就有可能刷出66张选票哦~)</li>
-                        <li>Q: 最后怎么结算？</li>
-                        <li>A: 最后由主播对选票方进行抽奖，并且奖品由主播颁发</li>
-                        <li>Q: 我有跟好玩的模式/我有问题反馈</li>
-                        <li>请戳这里！！</li>
-                    </ul>
-                    <a-button @click="showRule">我已了解</a-button>
-                </div>
+                        </div>
+
+                        <div class="vote-container">
+                            <div class="time-stamp">
+                                <time-stamp :prize-msg="flagConfig.choosedOptions?flagConfig.choosedOptions:[]"
+                                            :object-count="objectVoteCount" :support-count="supportVoteCount"></time-stamp>
+                            </div>
+                            <div class="show-action-time">
+                                <p v-if="voteIsStart&&!voteIsEnd">距结束还剩
+                                    <span>{{hours}}</span> 时 <span>{{minute}}</span> 分 <span>{{second}}</span> 秒</p>
+                                <p v-if="voteIsEnd" style="color:red">投票已经结束，等待主播开奖！！</p>
+                            </div>
+
+                        </div>
+
+                        <div class="vote-options">
+                            <div class="support-vote">
+                                    <span style="color: #f5d090">支持票|&nbsp;{{supportOption}}
+                                        &nbsp;({{getSupportCount}}票)</span>
+                                <div class="options">
+                                    <vote-progress type="support" :value="getSpportPecent"></vote-progress>
+                                </div>
+                            </div>
+                            <div class="object-vote">
+                                    <span style="color: #f5d090">反对票|&nbsp;{{objectOption}}
+                                        &nbsp;({{getObjectCount}}票)</span>
+                                <div class="options">
+                                    <vote-progress type="object" :value="getObectPecent"></vote-progress>
+                                </div>
+                            </div>
+                            <div class="bt-container">
+                                <div class="o-bt">
+                                    <img @click="confirmObjectVote" class="bt-style" src="./../assets/img/object_bt.png"/>
+                                </div>
+                                <div class="s-bt">
+                                    <img @click="confirmSupportVote" class="bt-style" src="./../assets/img/support_bt.png"/>
+                                    <img v-if="isShowObject" class="icon-style" src="./../assets/img/obj_icon.png">
+                                    <img v-if="isShowSpport" class="icon-style" src="./../assets/img/sup_icon.png">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="showResultPanel" style="color: #f5d090">
+                        <div class="none-prize" v-if="prizeList.length==0">
+                            <div class="non-span">暂时无人中奖</div>
+                        </div>
+                        <div v-else class="table-style" style="align-items: center; justify-content: center">
+                            <div class="table-list1">
+                                <div class="table-title1" style="font-size: 25px"><span>中奖名单</span></div>
+                                <div class="table-record">
+                                    <div class="record-list" style="font-size: 20px" v-for="item in prizeList" v-bind:key="">
+                                        <span class="sp-luck">欧皇</span>{{item.user_name}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mention-container">
+                            <div>正在等待主播开启下一场Flag...</div>
+                        </div>
+                    </div>
+                </a-tab-pane>
+                <a-tab-pane key="2">
+                    <span style="font-size: 20px;" slot="tab">主播记录</span>
+                    <div class="table-style">
+                        <div class="table-list1">
+                            <div class="table-title1"><span>历史记录</span></div>
+                            <div class="table-record">
+                                <div class="record-list" v-for="item in anchorRecord" v-bind:key="">
+                                    {{item.flagContent}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-list2">
+                            <div class="table-title2"><span>是否成功</span></div>
+                            <div class="table-record">
+                                <div class="record-list" v-for="item in recordState" v-bind:key="">
+                                    <span :class="{fail: item==0}">
+                                        {{item==0?'失败':'成功'}}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a-tab-pane>
+            </a-tabs>
             </div>
+        </div>
 
-            <!--<div>-->
-            <!--<h2>浏览</h2>-->
-            <!--<p>{{choosedVote}}</p>-->
-            <!--</div>-->
-            <toast></toast>
-        </vue-scroll>
+        <div v-if="showRuleToast" class="rule-toast">
+            <div class="rule-container">
+                <span class="rule-title">规则说明</span>
+                <ul class="ul-style">
+                    <li class="q-li">Q:&nbsp;如何获取选票</li>
+                    <li class="a-li">订阅+1票,发送弹幕、送礼物都有可能随机掉票哦~</li>
+                    <li class="q-li">Q: 关于Flag内容右上角小图标</li>
+                    <li class="a-li">即主播开启的娱乐模式。<br>
+                        有"主播口令"(按主播口令内容发送弹幕前100位送出选票)<br>
+                        "最后一分钟加速"(可能刷出66张选票甚至更多票哦~)</li>
+                    <li class="q-li">Q: 最后怎么结算？</li>
+                    <li class="a-li">活动奖品由主播方解释，并且奖品由主播颁发~</li>
+                    <li class="q-li">Q: 关于票的使用</li>
+                    <li class="a-li">所有获得的票只能用于本场使用哦~本场过后剩余的票数全部失效！</li>
+                </ul>
+                <a-button @click="showRule">我已了解</a-button>
+            </div>
+        </div>
+
+        <toast></toast>
     </div>
 </template>
 
@@ -178,23 +180,30 @@
                 settingState: CONFIG.settingStateMap.liveInfo,
                 showRuleToast: false,
                 userInfo: null,
+                isShowSpport:false,
+                isShowObject:false,
+                supportOption:'',
+                objectOption: '',
+                moreFuntions: false,
 
                 /*主播配置项*/
                 flagConfig:{},
                 voteIsStart: false,
                 voteIsEnd: false,
                 voteCountDownNum: 0,
+                prizeList:[],
 
                 /*用户配置项*/
-                choosedVote: 0, //用户选择的票
-                keepVotes: 2,  //用户拥有的票
-                objectVoteCount: 2, //支持票数量
-                supportVoteCount: 3, //反对票数量
+                keepVotes: 0,  //用户拥有的票
+                objectVoteCount: 0, //支持票数量
+                supportVoteCount: 0, //反对票数量
                 lastVote: {}, //上次投票结果
                 thisVote: {}, //这一次投票的内容
                 flagId: "",
                 flagRecords: [1,2,3,4],
-                isScribed: 0
+                isScribed: 0,
+                anchorRecord: [],
+                recordState: []
 
             }
         },
@@ -215,10 +224,15 @@
         created() {
             hyExt.onLoad(() => {
                 this.getLastVoteResult();
-                // this.getAnchorHistory();
+                this.getAnchorHistory();
                 this.registerListener();
-                this.getUserInfo(); //用户信息授权
             });
+
+            hyExt.onLeaveForeground(()=>{
+                this.onLoadUserVote();
+            });
+
+            this.getUserInfo(); //用户信息授权
 
         },
         computed: {
@@ -248,6 +262,14 @@
                 var takePecent = this.objectVoteCount / total;
                 var intTake = takePecent * 100;
                 return intTake;
+            },
+
+            getObjectCount() {
+                return this.objectVoteCount;
+            },
+
+            getSupportCount(){
+                return this.supportVoteCount;
             }
         },
         methods: {
@@ -260,16 +282,17 @@
                     });
             },
 
-            // getAnchorHistory(){
-            //     util.hy_request({
-            //         service: 'getHistory',
-            //         method: 'GET'
-            //     }).then(res =>{
-            //         if(res.status==200){
-            //             this.flagRecords = res.data;
-            //         }
-            //     })
-            // },
+            getAnchorHistory(){
+                util.hy_request({
+                    service: 'getHistory',
+                    method: 'GET'
+                }).then(res =>{
+                    if(res.status==200){
+                        this.anchorRecord = res.data;
+                        this.recordState = res.state;
+                    }
+                })
+            },
 
             getLastVoteResult(flagId = "") {
                 var questParam = {};
@@ -289,41 +312,32 @@
 
                 util.hy_request(questParam)
                     .then(res => {
-                        if (res.status === 200 && res.data) {
+                        if (res.status === 200 && res.data.length) {
 
                             var configOptions = JSON.parse(res.data[0]['config_content']);
                             this.lastVote = res.data[0];
                             this.flagConfig = configOptions;
                             this.flagId = this.lastVote.flag_id;
+                            this.supportVoteCount = res.data[1].support_count;
+                            this.objectVoteCount = res.data[1].object_count;
+                            this.supportOption = configOptions.voteContent.support;
+                            this.objectOption = configOptions.voteContent.object;
 
                             //如果未完成的话
-                            if(this.lastVote.success){
-                                //发起网络请求时去服务器端找数据缓存
-                                util.hy_request({
-                                    service: 'getUserMsg',
-                                    method:'GET',
-                                    param:{
-                                        flagId: this.flagId
-                                    }
-                                }).then(res=>{
-                                    //如果用户已经在表中有记录  场景：用户重新打开小程序时主播正在运行
-                                    if(res.status==200 && res.data){
-                                        console.log(this.flagId)
-                                        this.keepVotes = res.data[0].keepVotes;
-                                        this.isScribed = res.isScribed;
-                                    }
-                                    //如果用户在表中没记录 场景：用户第一次打开小程序时且主播正在运行
-                                    this.getUserstate();
-                                })
+                            if(!this.lastVote.success){
+                                this.getUserstate();
                             };
 
                             if(res.hasResult) {
+                                //如果正在进行中
                                 if(res.data[0].flag_state==0){
                                     this.settingState = CONFIG.settingStateMap.liveInfo;
                                     this.startVoteTimeCountDown();
                                 }
 
+                                //如果已完成
                                 else if(res.data[0].flag_state==1){
+                                    this.prizeList = JSON.parse(this.lastVote.prize_list);
                                     this.settingState = CONFIG.settingStateMap.end;
                                 }
                             }
@@ -332,64 +346,83 @@
                             }
 
                         }
+                        else {
+                            this.settingState = CONFIG.settingStateMap.unstart;
+                        }
                     })
             },
 
             registerListener() {
-                hyExt.observer.on('flag_config_info-push', res => {
-                    res = JSON.parse(res);
-                    this.settingState = CONFIG.settingStateMap.ready;
-                    this.thisVote = res.thisVote;
-                    this.flagId = res.flagId;
 
-                    console.log('保存配置推送', 'flag_content_info-push', res, res.flagId);
-                });
-
-                hyExt.observer.on('flag_config_ready-push', res => {
+                hyExt.observer.on('start_flag', res => {
 
                     res = JSON.parse(res);
 
-                    this.thisVote = res.thisVote;
+                    this.flagConfig = res;
                     this.flagId = res.flagId;
 
                     this.supportVoteCount = 0;
                     this.objectVoteCount = 0;
 
                     //倒计时开始， 用户可以开始设置
-                    this.settingState = CONFIG.settingStateMap.countDown;
+                    this.settingState = CONFIG.settingStateMap.liveInfo;
                     this.startVoteTimeCountDown();
-                    console.log('保存配置推送', 'flag_config_info-push', res, res.raceId);
                 });
 
-                hyExt.observer.on('speed_race_finish-push', res => {
+                hyExt.observer.on('prize_draw_finish', res => {
 
                     res = JSON.parse(res);
 
-                    this.getLastVoteResult(this.flagId);
                     this.settingState = CONFIG.settingStateMap.end;
 
                 });
 
                 hyExt.context.on('subscribeSubmit', isSubscribed => {
-                    if(isSubscribed==true){
-                        console.log("111")
+                    console.log(isSubscribed);
+                    if(isSubscribed==1&&this.isScribed==0){
+                        console.log("成功订阅");
+                        util.showToast("恭喜您血赚一张票~");
+                        this.isScribed=1;
+                        this.keepVotes++;
+                    }
+                    else {
+                        util.showToast("不能重复订阅哦~")
                     }
                 });
 
                 hyExt.context.on('barrageSubmit', barrageInfo => {
-
+                    console.log(barrageInfo);
                 });
 
                 hyExt.context.on('giftSubmit', barrageInfo => {
-
+                    console.log(barrageInfo)
                 });
             },
 
+
             getUserstate(){
-                hyExt.context.getSubscribeInfo().then(isScribed => {
-                    if(!this.isScribed&&isScribed){
-                        this.keepVotes++;
+                //发起网络请求时去服务器端找数据缓存
+                util.hy_request({
+                    service: 'getUserMsg',
+                    method:'GET',
+                    param:{
+                        flagId: this.flagId
                     }
+                }).then(res=>{
+                    //如果用户已经在表中有记录  场景：用户重新打开小程序时主播正在运行
+                    if(res.status==200 && res.data){
+                        this.keepVotes = res.data[0].keep_votes;
+                        this.isScribed = res.data[0].is_scribed;
+                    }
+                    else if(res.status==200 && res.data==''){
+                        this.keepVotes = 1;
+                    }
+                    //如果用户在表中没记录 场景：用户第一次打开小程序时且主播正在运行
+                    hyExt.context.getSubscribeInfo().then(isScribed => {
+                        if(!this.isScribed&&isScribed){
+                            this.keepVotes++;
+                        }
+                    })
                 })
             },
 
@@ -397,10 +430,16 @@
 
                 var that = this;
 
+                if(this.voteIsEnd){
+                    util.showToast("坐等做主播开奖吧~");
+                    return;
+                }
+
                 if (this.keepVotes <= 0) {
                     util.showToast("你的票数不够，快去获取选票吧~");
                     return;
                 }
+
 
                 util.hy_request({
                     service: 'addVote',
@@ -425,6 +464,11 @@
 
             confirmObjectVote(){
                 var that = this;
+
+                if(this.voteIsEnd){
+                    util.showToast("坐等做主播开奖吧~");
+                    return;
+                }
 
                 if (this.keepVotes <= 0) {
                     util.showToast("你的票数不够，快去获取选票吧~");
@@ -456,13 +500,18 @@
                 this.voteIsStart = true;
                 this.voteCountDownNum = this.flagConfig.acheiveTime;
                 var that = this;
+                var updateCounts = 0;
                 if (this.voteIsStart && !this.voteIsEnd) {
 
                     this.curTimer = setInterval(() => {
                         if (that.voteCountDownNum - new Date().getTime() > 0) {
                             var curTime = util.SecondToData(that.voteCountDownNum);
+                            //实现前台论查询模式，后面优化需要换成websocket，减少性能消耗。
+                            if(updateCounts%5==0)
+                                this.updateVoteCount();
                             this.initFormate(curTime);
                             this.initFormate(curTime);
+                            updateCounts++;
                         }
                         else {
                             that.voteIsEnd = true;
@@ -474,15 +523,74 @@
                 console.log(this.voteCountDownNum);
             },
 
+            updateVoteCount(){
+                util.hy_request({
+                    service: 'backVoteCount',
+                    method: 'GET',
+                    param:{
+                        flagId: this.flagId
+                    }
+                }).then(res => {
+                    this.supportCount = res.support_count;
+                    this.objectCount = res.object_count;
+                })
+            },
+
             initFormate(curTime) {
                 this.hours = curTime.split(':')[0];
                 this.minute = curTime.split(':')[1];
                 this.second = curTime.split(':')[2];
             },
 
+            toScribe(){
+                hyExt.context.leadSubscribe().then(() => {
+                    hyExt.logger.info('发起订阅成功')
+                }).catch(err => {
+                    util.showToast("您已经订阅过啦~")
+                })
+            },
+
+            toGift(){
+                hyExt.context.leadGift().then(() => {
+                    hyExt.logger.info('发起送礼成功')
+                }).catch(err => {
+                    hyExt.logger.warn('发起送礼失败', err)
+                })
+            },
+
+            toSendBarrage(){
+                hyExt.context.leadBarrage().then(() => {
+                    hyExt.logger.info('发起发言成功')
+                }).catch(err => {
+                    hyExt.logger.warn('发起发言失败', err)
+                })
+            },
+
             showRule(){
                 this.showRuleToast = !this.showRuleToast;
             },
+
+            onLoadUserVote(){
+                if(this.voteIsEnd){
+                    return;
+                }
+
+                util.hy_request({
+                    service: 'saveUserState',
+                    method: 'POST',
+                    param: {
+                        flagId: this.flagId,
+                        isScribed: this.isScribed,
+                        keepVotes: this.keepVotes,
+                    }
+                }).then(res => {
+                    console.log(res);
+                })
+            },
+
+            showMoreFun(){
+                this.moreFuntions = !this.moreFuntions;
+            }
         },
     }
 </script>
@@ -528,6 +636,7 @@
         }
     }
 
+
     .pro-name {
         position: absolute;
         display: block;
@@ -549,16 +658,30 @@
         .user-msg{
             display: flex;
             flex-direction: column;
-            margin: 15px auto 5px auto;
+            margin: 0 auto;
             font-size: 15px;
             font-weight: 300;
             text-align: center;
+        }
+
+        .get-sp{
+            margin: 0 5px;
+            text-decoration: underline;
+        }
+
+        .get-sp:hover{
+            color: white;
         }
 
         .tabs-panel{
         }
 
     }
+
+    .fail{
+        color: #ed6521;
+    }
+
 
     .vote-container {
         display: flex;
@@ -573,7 +696,7 @@
     }
 
     .show-action-time {
-        margin: 10px auto;
+        margin: 0 auto;
     }
 
     .panel-main {
@@ -595,7 +718,16 @@
 
         }
 
+        .other-fun{
+            width: 50px;
+            height: 50px;
+            position: absolute;
+            right: 40px;
+            top: 63px;
+        }
+
     }
+
 
     .vote-options {
         margin: 0 0 30px 65px;
@@ -628,41 +760,108 @@
         }
     }
 
-    .table-titles{
-
-        display: flex;
-
-        .table-title{
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-around;
-            margin: 0 auto;
-            width: 95%;
-            height: 50px;
-            color: white;
-            font-size: 18px;
-        }
-
-    }
-
-    .table-lists{
+    .none-prize{
+        width: 100%;
         display: flex;
         flex-direction: column;
-        /*padding: 10px 10px;*/
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        font-weight: 300;
+        margin-top: 20px;
+    }
 
-        .table-list{
+    .table-style{
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+
+        .table-list1{
             display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-around;
-            margin: 0 auto;
-            width: 90%;
-            height: 50px;
-            border: 1px solid red;
-            color: white;
+            flex-direction: column;
+            width: 56%;
+            margin-left: 5%;
+
+            .table-title1{
+                width: 90%;
+                font-size: 18px;
+                font-weight: 300;
+                text-align: center;
+                margin: 7px 0;
+                color: #c9bc97;
+            }
+
+            .table-record{
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                margin-top: 10px;
+
+                .record-list{
+                    margin: 5px 5px;
+                    color: white;
+                    width: 90%;
+                    word-wrap: break-word;
+                    text-align: center;
+                }
+            }
+        }
+
+        .table-list2{
+            display: flex;
+            flex-direction: column;
+            width: 30%;
+
+            .table-title2{
+                width: 100%;
+                font-size: 18px;
+                font-weight: 300;
+                text-align: center;
+                margin: 7px 0;
+                color: #c9bc97;
+            }
+
+            .table-record{
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+                margin-top: 10px;
+
+                .record-list{
+                    display: flex;
+                    text-align: center;
+                    align-items: center;
+                    justify-content: center;
+                    color: deepskyblue;
+                    height: 100%;
+
+                }
+            }
         }
     }
+
+    .sp-luck{
+        border: 1px solid #f5d090;
+        color: #f0ad4e;
+        height: 20px;
+        padding: 0 12px;
+        margin-right: 10px;
+        font-size: 15px;
+        border-radius: 10px;
+
+    }
+
+    .mention-container{
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: 300;
+        margin-top: 20px;
+    }
+
 
     .non-flag {
         margin: 30px 20px 10px 20px;
@@ -707,6 +906,14 @@
             width: 120px;
         }
 
+        .icon-style{
+            position: absolute;
+            width: 25px;
+            bottom: 32px;
+            left: 81%;
+        }
+
+
         .s-cha-bt{
             position: absolute;
             bottom: 33px;
@@ -749,9 +956,8 @@
 
     .rule-toast{
         position: absolute;
-        top: 250px;
+        bottom: 20px;
         width: 100%;
-        height: 220px;
         display: flex;
         padding: 20px 20px;
         z-index: 999;
@@ -760,15 +966,33 @@
             display: flex;
             flex-direction: column;
             margin: 0 auto;
-            background-color: #93a3a0;
+            background-color: #f2f2f2;
             border-radius: 12px ;
-            border: 1px solid #cccccc;
             width: 90%;
-            color: #f5d090;
+            color: black;
 
             .rule-title{
                 margin: 5px auto;
                 font-size: 15px;
+            }
+
+            ul{
+                list-style: none;
+                width: 90%;
+                li{
+                    padding-left: 0;
+                    margin-left: -30px;
+                }
+                .q-li{
+                    font-size: 15px;
+                    font-weight: 600;
+                    margin: 10px 0 2px -30px;
+                }
+                .a-li{
+                    margin-left: -15px;
+                    letter-spacing: 1px;
+                    font-weight: 300;
+                }
             }
 
         }

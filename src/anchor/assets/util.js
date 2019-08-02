@@ -99,7 +99,8 @@ var util = {
 
 
         return curArr;
-    }
+    },
+
     
 };
 

@@ -85,7 +85,7 @@ var util = {
         let time = curTime / 1000;
         if(time!=null && time!=""){
             //计算小于一小时
-            if(time>60 && time<3600){
+            if(time<3600){
                 time = "0" + ":" + parseInt(time/60.0) + ":" + parseInt((parseFloat(time/60.0)
                     - parseInt(time/60.0)) * 60);
             }
@@ -99,6 +99,7 @@ var util = {
         }
 
         let curtime = '';
+        console.log(time);
         curtime = time.split(':');
 
         let curArr = '';
@@ -117,9 +118,12 @@ var util = {
 
         return curArr;
     },
+
     showToast(text){
         eventBus.$emit('showToast', text);
     },
+
+
 };
 
 export default util;

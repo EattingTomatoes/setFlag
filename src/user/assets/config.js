@@ -5,7 +5,7 @@ var config = {
     maxSettingActionTime: 8,
     defaultActionTime: 3,
     extUuid: '',
-    baseUrl: isDebug ? '' : 'z.cn',
+    baseUrl: isDebug ? '' : 'weixiaoyuan.xyz',
     port: isDebug ? 17050 : 80,
     settingStateMap: {
         unstart: 0,
@@ -32,6 +32,7 @@ var config = {
             background: '#385247',   //颜色
         }
     },
+
     tabs: {
         fontSize: '20px',
         color: '#ab9765',
@@ -41,7 +42,6 @@ var config = {
         marginRight: '30px',
         paddingLeft: '10px',
         paddingRight: '10px'
-
     }
 };
 

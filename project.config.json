@@ -1,6 +1,7 @@
 {
 	"lib": "vue",
 	"devServer": {
+		"https": true,
 		"host": "localhost",
 		"port": 8080,
 		"publicPath": "/"
