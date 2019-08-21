@@ -1,4 +1,4 @@
-<template>
+﻿<template>
     <div id="index">
         <div class="bg_title">
             <img class="title" src="./../assets/img/bg_01.gif"/>
@@ -16,19 +16,19 @@
                                 <label>Flag内容</label>
                                 <div class="content">
                                     <a-input type="text" style="padding-left: 10px; width: 160px" size="small"
-                                             v-model="flagContent" maxlength="15"></a-input>
+                                             v-model="content" maxlength="15"></a-input>
                                 </div>
-                                <!--<input type="text" v-model="flagContent" class="form-control"/>-->
+                                <!--<input type="text" v-model="content" class="form-control"/>-->
                             </div>
 
                             <div class="time-wrapper">
                                 <label style="width: 72px">投票时长</label>
                                 <div class="wrapper">
-                                    <a-icon type="minus" class="time-icon" @click="reduceActionTime"></a-icon>
+                                    <a-icon type="minus" class="time-icon" @click="reducelimitedTime"></a-icon>
                                     <p class="time">
-                                        {{actionTime}}小时
+                                        {{limitedTime}}小时
                                     </p>
-                                    <a-icon type="plus" class="time-icon" @click="addActionTime"/>
+                                    <a-icon type="plus" class="time-icon" @click="addlimitedTime"/>
                                 </div>
                             </div>
 
@@ -40,11 +40,11 @@
                                     <div class="option-content">
                                         <div>
                                             <a-input type="text" class="option-support" addonBefore="支持票"
-                                                     v-model="voteContent.support" size="small" maxlength="15"/>
+                                                     v-model="supportOption" size="small" maxlength="15"/>
                                         </div>
                                         <div>
                                             <a-input type="text" class="option-object" addonBefore="反对票"
-                                                     v-model="voteContent.object" size="small" maxlength="15"/>
+                                                     v-model="objectOption" size="small" maxlength="15"/>
                                         </div>
                                     </div>
                                 </div>
@@ -55,10 +55,11 @@
                             <label>奖金进度</label>
                             <div class="options-setting">
                                 <ul>
-                                    <li class="bd-callout bd-callout-warning" v-for="(option, index) in choosedOptions"
+                                    <li class="bd-callout bd-callout-warning" v-for="(option, index) in prizes"
                                         v-bind:key="option.id">
-                                        <a-icon type="minus" class="option-icon"
-                                                @click="choosedOptions.splice(index,1)"></a-icon>
+                                        <div style="display:flex; margin: auto" @click="prizes.splice(index,1)">
+                                            <a-icon type="minus" class="option-icon"></a-icon>
+                                        </div>
                                         <div class="option-container">
                                             投票数达到<span>{{option.votesCount}}</span>票时,
                                             送出<span>{{option.prizeType}}</span>
@@ -76,30 +77,49 @@
                             </div>
 
                             <div class="form-check">
-                                <input v-model="otherOptions" type="checkbox" value="1"/>开启"最后一分钟"加速模式.
+                                <input v-model="mode" type="checkbox" value="1"/>开启"最后十分钟"加速模式.
+                            </div>
+                            <div class="mode1-style" v-if="mode.find(item => item=='1')">
+                                <label class="mode1-cha-style">*开启之后在投票结束前十分钟用户可爆出多张票</label>
                             </div>
                             <div class="form-check">
-                                <input v-model="otherOptions" type="checkbox" value="2">开启随机送票模式.
-                            </div>
-                            <div class="form-check">
-                                <input v-model="otherOptions" type="checkbox" value="3">开启主播口令模式.
+                                <input v-model="mode" type="checkbox" value="2">开启主播口令模式.
                             </div>
 
-                            <div class="order-content-style" v-if="otherOptions.find(item => item==3)">
-                                <label>口令内容</label>
-                                <!--<div :click="addOrder" class="add-btn">+添加口令</div>-->
-                                <a-input class="order-input" v-model="orderContent" type="text"
-                                         placeholder="如:整条街我靓仔" maxlength="15"></a-input>
+                            <div class="order-content-style" v-if="mode.find(item => item=='2')">
+                                <label>主播口令</label>
+                                <label class="mode2-cha-style">*隔一段时间出现一次,输入与口令相同的弹幕即可获得投票</label>
+                                <ul>
+                                    <div>
+                                        <li class="commands-style" v-for="(item, index) in command" :key="index">
+                                            <a-input class="command-style" :addonBefore=index+1 v-model="command[index]" ></a-input>
+                                            <div class="command-delete">
+                                                <span @click="deleteCommand(index)">删除</span>
+                                            </div>
+                                        </li>
+                                    </div>
+                                </ul>
+                                <div class="options-setting">
+                                    <div @click="addCommand" class="add-btn">+添加口令</div>
+                                </div>
                             </div>
                         </div>
 
+
                     </div>
+                    <!--<div><a-button @click="testApi">测试</a-button></div>-->
                     <div class="btn_wrapper">
                         <div class="save">
                             <a-button size="large" @click="saveSettingConfig">保存</a-button>
                         </div>
                         <div class="start">
                             <a-button size="large" @click="startAction">启动</a-button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div v-for="item in command">
+                            <p>{{item}}</p>
                         </div>
                     </div>
                 </a-tab-pane>
@@ -110,16 +130,16 @@
                             <div class="table-title1"><span>历史记录</span></div>
                             <div class="table-record">
                                 <div class="record-list" v-for="item in anchorRecord" v-bind:key="">
-                                    {{item.flagContent}}
+                                    {{item.content}}
                                 </div>
                             </div>
                         </div>
                         <div class="table-list2">
                             <div class="table-title2"><span>是否成功</span></div>
                             <div class="table-record">
-                                <div class="record-list" v-for="item in recordState" v-bind:key="">
-                                        <span :class="{fail: item==0}">
-                                            {{item==0?'失败':'成功'}}
+                                <div class="record-list" v-for="item in anchorRecord" v-bind:key="">
+                                        <span :class="{fail: item.finish_state==2}">
+                                            {{item.finish_state==2?'失败':'成功'}}
                                         </span>
                                 </div>
                             </div>
@@ -140,23 +160,22 @@
 
         <div v-if="showLiveInfoPanel" class="bg-panel live_info_panel">
             <div class="live_info_show">
-                <p class="flag_content">{{anchorMsg.userNick}}:&nbsp;{{flagContent}}</p>
                 <p v-if="voteIsStart&&!voteIsEnd">距投票还剩
                     <span>{{time.hours}}</span> 时 <span>{{time.minute}}</span> 分 <span>{{time.second}}</span> 秒</p>
                 <p v-if="voteIsEnd" style="color:red">投票已结束</p>
-                <div v-if="voteIsEnd">
-                    <div class="vote-style">
-                        <div class="support-container">
-                            <div class="support-sp">支持票</div>
-                            <div class="support-count">{{supportVoteCount}}</div>
-                        </div>
-                        <div class="object-container">
-                            <div class="object-sp">反对票</div>
-                            <div class="object-count">{{objectVoteCount}}</div>
-                        </div>
+                <div class="vote-style">
+                    <div class="support-container">
+                        <div class="support-sp">支持票</div>
+                        <div class="support-count">{{getSpportVoteCount}}</div>
                     </div>
-                    <a-button @click="submitResult1">从投"支持票"中抽奖</a-button>
-                    <a-button @click="submitResult2">从投"反对票"中抽奖</a-button>
+                    <div class="object-container">
+                        <div class="object-sp">反对票</div>
+                        <div class="object-count">{{getObjectVoteCount}}</div>
+                    </div>
+                </div>
+                <div v-if="voteIsEnd">
+                    <a-button @click="submitResult1">Flag成功</a-button>
+                    <a-button @click="submitResult2">Flag失败</a-button>
                 </div>
             </div>
         </div>
@@ -164,15 +183,15 @@
         <div v-if="showResultPanel" class="bg-panel result_panel">
             <div class="panel-main">
                 <div class="flag-content">
-                    <span>参与Flag:"{{flagContent}}"的中奖名单为:</span>
+                    <span class="win-style">参与Flag:"{{content}}"的中奖名单为:</span>
                 </div>
                 <div class="prize-header">
                     <span>中奖用户ID</span>
                     <span>中奖用户名称</span>
                 </div>
-                <div class="prize-list" v-for="prizeMsg in prizeList">
-                    <span>{{prizeMsg.user_id}}</span>
-                    <span>{{prizeMsg.user_name}}</span>
+                <div class="prize-list" v-for="winMsg in winList">
+                    <span>{{winMsg.user.user_id}}</span>
+                    <span>{{winMsg.user_nick}}</span>
                 </div>
                 <div v-if="showNonePrize" class="no-prize">
                     <span>本次投票未达到目标,</span>
@@ -185,9 +204,8 @@
             </div>
         </div>
 
-
         <add-options-dialog
-                :choosedOptionList="choosedOptions">
+                :choosedOptionList="prizes">
         </add-options-dialog>
         <toast></toast>
 
@@ -221,27 +239,31 @@
                 voteIsStart: false,
                 voteIsEnd: false,
                 curTimer: null,
-                voteContent: CONFIG.voteContent,
                 time: {hours: '', minute: '', second: ''},
                 styleObject: CONFIG.tabs,
                 showNone: 0,
                 saveAllOptions: false,
-                supportVoteCount:0,
-                objectVoteCount: 0,
+                supportCount:0,
+                objectCount: 0,
                 anchorRecord:[],
                 recordState:[],
+                voteState: 0,
+                ws:null,
+                wsMsg:null,
 
                 //提交主播配置项
-                anchorMsg: {},
-                supportOption: '',
-                objectOption: '',
-                actionTime: 1,
+                anchorNick:'',
+                supportOption: CONFIG.voteContent.support,
+                objectOption: CONFIG.voteContent.object,
+                limitedTime: 1,
                 achevieTime: 0,
-                flagContent: '',
+                content: '',
                 choosedOptions: [],
-                otherOptions: [],
-                orderContent: '',
-                prizeList: [],
+                mode: [],
+                command: [],
+                ele:0,
+                prizes: [],
+                winList:[],
                 allConfig:null,
             }
         },
@@ -250,41 +272,19 @@
                 this.getAnchorMsg();
                 this.getLastVoteResult();
                 this.registerResultListener();
-
+                this.getAnchorHistory();
                 eventBus.$on('saveOption', ({votesCount, prizeType, prizeCount}) => {
-                    console.log('传过来的内容为', votesCount, prizeType, prizeCount);
-                    var length = this.choosedOptions.length;
+                    var length = this.prizes.length;
 
-                    this.choosedOptions.push({
+                    this.prizes.push({
                         optionId: this.nextOptionsId++,
                         votesCount: votesCount,
                         prizeType: prizeType,
                         prizeCount: prizeCount,
                     });
 
-                    // var compare = function (prop) {
-                    //     return function (obj1, obj2) {
-                    //         var val1 = obj1[prop];
-                    //         var val2 = obj2[prop];
-                    //         if (!isNaN(Number(val1)) && !isNaN(Number(val2))) {
-                    //             val1 = Number(val1);
-                    //             val2 = Number(val2);
-                    //         }
-                    //         if (val1 < val2) {
-                    //             return -1;
-                    //         }
-                    //         else if (val1 > val2) {
-                    //             return 1;
-                    //         }
-                    //         return 0;
-                    //     }
-                    // };
-                    // this.choosedOptions.sort(compare('votesCount'));
-
                 })
             });
-
-
         },
         computed: {
             showUnstartPanel() {
@@ -302,31 +302,41 @@
             showNonePrize(){
                 return this.showNone;
             },
+
+            getSpportVoteCount(){
+                return this.supportCount;
+            },
+
+            getObjectVoteCount(){
+                return this.objectCount;
+            },
+
             getSpportPecent() {
-                var total = this.supportVoteCount + this.objectVoteCount;
-                console.log("dedede",total)
+                var total = this.supportCount + this.objectCount;
                 if (!total) return 0;
-                var takePecent = this.supportVoteCount / total;
+                var takePecent = this.supportCount / total;
                 var intTake = takePecent * 100;
                 return intTake;
             },
 
             getObectPecent() {
-                var total = this.supportVoteCount + this.objectVoteCount;
-                console.log("dedede",total)
+                var total = this.supportCount + this.objectCount;
                 if (!total) return 0;
-                var takePecent = this.objectVoteCount / total;
+                var takePecent = this.objectCount / total;
                 var intTake = takePecent * 100;
                 return intTake;
-            }
+            },
+
+
         },
 
         methods: {
+
             getLastVoteResult(flagId = "") {
                 var questParam = {};
                 if (flagId) {
                     questParam = {
-                        service: 'getFlagConfig',
+                        service: 'getVoteResult',
                         param: {
                             flagId: flagId
                         }
@@ -334,39 +344,36 @@
                 }
                 else {
                     questParam = {
-                        service: 'getFlagConfig',
+                        service: 'getVoteResult',
                     }
                 }
 
                 util.hy_request(questParam)
                     .then(res => {
-                        if (res.status === 200 && res.data.length) {
+                        if (res.status === 200 && res.data) {
+                            this.content = res.data.content;
+                            this.limitedTime = res.data.limited_time;
+                            this.achieveTime = res.data.achieve_time;
+                            this.supportOption = res.data.support_option;
+                            this.objectOption = res.data.object_option;
+                            this.prizes = JSON.parse(res.data.prizes);
+                            this.mode = JSON.parse(res.data.mode);
+                            this.command = JSON.parse(res.data.command);
+                            this.supportCount = res.data.flag_vote.support_count;
+                            this.objectCount = res.data.flag_vote.object_count;
+                            this.flagId = res.data.id;
+                            this.voteState = res.data.flag_vote.vote_state;
+                            this.winList = res.data.flag_vote.win_list;
 
-                            var configOptions = JSON.parse(res.data[0]['config_content']);
-                            this.actionTime = configOptions.limitedTime;
-                            this.acheiveTime = configOptions.acheiveTime;
-                            this.voteContent = configOptions.voteContent;
-                            this.choosedOptions = configOptions.choosedOptions;
-                            this.otherOptions = configOptions.otherOptions;
-                            this.orderContent = configOptions.orderContent;
-                            this.flagContent = configOptions.flagContent;
-                            this.flagId = res.data[0]['flag_id'];
-                            console.log(res)
-
-                            if (res.hasResult) {
-                                this.supportVoteCount = res.data[1].support_count;
-                                this.objectVoteCount = res.data[1].object_count;
-                                if (res.data[0].flag_state == 0) {
+                            if(res.data.config_state){
+                                if(!res.data.finish_state){
                                     this.settingState = CONFIG.settingStateMap.liveInfo;
                                     this.startVoteTimeCountDown();
                                 }
-
-                                else if (res.data[0].flag_state == 1) {
-                                    this.prizeList = JSON.parse(res.data[0]['prize_list']);
+                                else {
                                     this.settingState = CONFIG.settingStateMap.end;
                                 }
                             }
-
                         }
                     })
             },
@@ -377,40 +384,47 @@
                     method: 'GET'
                 }).then(res =>{
                     if(res.status==200){
-                        this.anchorRecord = res.data;
-                        this.recordState = res.state;
+                        this.anchorRecord = res.history;
                     }
                 })
             },
 
-            checkContent(e){
-                if(this.flagContent.length>15){
-                    util.showToast("输入的Flag内容不能超过15个字！")
-                }
-            },
 
             //注册结果的一个监听按钮。有消息源就触发
             registerResultListener() {
-                hyExt.observer.on('get_finish_result', res => {
+                var self = this;
+                hyExt.observer.on('get_vote_count',res => {
                     res = JSON.parse(res);
-                    this.getLastVoteResult(this.flagId);
-                    this.settingState = CONFIG.settingStateMap.end;
-                })
-
+                    this.supportCount = res.support_count;
+                    this.objectCount = res.object_count;
+                });
             },
 
-            reduceActionTime() {
-                if (this.actionTime <= CONFIG.minSettingActionTime) {
+            reducelimitedTime() {
+                if (this.limitedTime <= CONFIG.minSettinglimitedTime) {
                     return;
                 }
-                this.actionTime -= 0.5;
+                this.limitedTime -= 0.5;
             },
 
-            addActionTime() {
-                if (this.actionTime >= CONFIG.maxSettingActionTime) {
+            addlimitedTime() {
+                if (this.limitedTime >= CONFIG.maxSettinglimitedTime) {
                     return;
                 }
-                this.actionTime += 0.5;
+                this.limitedTime += 0.5;
+            },
+
+            addCommand() {
+                if(this.ele>=5){
+                    util.showToast("最多只能添加5条口令");
+                    return;
+                }
+                this.ele++;
+                this.command.push('');
+            },
+//删除一项
+            deleteCommand(index) {
+                this.command.splice(index,1);
             },
 
             showAddOptionsDialog() {
@@ -423,7 +437,7 @@
 
             saveSettingConfig: function () {
 
-                this.choosedOptions = this.choosedOptions.map(item => {
+                this.prizes = this.prizes.map(item => {
                     return {
                         votesCount: util.xssFilter(item.votesCount),
                         prizeType: util.xssFilter(item.prizeType),
@@ -431,16 +445,17 @@
                     }
                 });
 
-                this.acheiveTime = new Date().getTime() + this.actionTime * 3600 * 1000;
+                this.achieveTime = new Date().getTime() + this.limitedTime * 3600 * 1000;
 
                 var submitValue = {
-                    flagContent: util.xssFilter(this.flagContent),
-                    limitedTime: this.actionTime,
-                    acheiveTime: this.acheiveTime,
-                    voteContent: this.voteContent, // 投票选项
-                    choosedOptions: this.choosedOptions, // 奖品选项
-                    otherOptions: this.otherOptions, // 其它配置
-                    orderContent: this.orderContent,
+                    content: util.xssFilter(this.content),
+                    limitedTime: this.limitedTime,
+                    achieveTime: this.achieveTime,
+                    supportOption: this.supportOption,
+                    objectOption: this.objectOption,
+                    prizes: this.prizes, // 奖品选项
+                    mode: this.mode, // 其它配置
+                    command: this.command,
                 };
 
                 this.allConfig = submitValue;
@@ -450,12 +465,18 @@
                     service: 'saveConfig',
                     method: 'POST',
                     param: {
-                        anchorMsg: JSON.stringify(that.anchorMsg),
-                        options: JSON.stringify(submitValue)
+                        content: util.xssFilter(this.content),
+                        limitedTime: this.limitedTime,
+                        achieveTime: this.achieveTime,
+                        supportOption: this.supportOption,
+                        objectOption: this.objectOption,
+                        prizes: JSON.stringify(this.prizes), // 奖品选项
+                        mode: JSON.stringify(this.mode), // 其它配置
+                        command: JSON.stringify(this.command),
                     }
                 }).then(res => {
-                    if (res.status == 200 && res.flag_id) {
-                        this.flagId = res.flag_id;
+                    console.log(res)
+                    if (res.status == 200) {
                         this.saveAllOptions = true;
                         util.showToast('已成功保存');
                     } else {
@@ -472,15 +493,19 @@
                     return;
                 }
 
-                if (!(this.flagContent && this.actionTime && this.choosedOptions.length
-                    && this.voteContent.object && this.voteContent.support)) {
+                if (!(this.content && this.limitedTime && this.prizes.length
+                    && this.supportOption && this.objectOption)) {
                     util.showToast('请填写完整配置哈~');
+                    this.saveAllOptions = false;
                     return;
                 }
 
-                if (this.otherOptions.find(item => item == 3) && !this.orderContent) {
-                    util.showToast('请填写主播口令~');
-                    return;
+                if (this.mode.find(item => item == 2)) {
+                    if(this.command.find(com => com=='')){
+                        util.showToast('请填写主播口令~');
+                        this.saveAllOptions = false;
+                        return;
+                    }
                 }
 
                 // this.startReadyTimeCountDown();
@@ -492,11 +517,8 @@
                         flagId: this.flagId
                     }
                 }).then(res => {
-                    console.log(res);
                     if (res.status === 200) {
-                        this.allConfig.flagId = this.flagId;
-                        hyExt.observer.emit('start_flag',JSON.stringify(this.allConfig));
-                        console.log(JSON.stringify(this.allConfig));
+                        hyExt.observer.emit('start_flag',JSON.stringify(this.flagId));
                         this.startReadyTimeCountDown();
                     }
                     else {
@@ -505,6 +527,7 @@
                 })
 
             },
+
 
             startReadyTimeCountDown() {
                 this.readyCountDownNum = 3;
@@ -525,9 +548,11 @@
 
             startVoteTimeCountDown() {
                 this.voteIsStart = true;
-                this.voteCountDownNum = this.acheiveTime;
+                this.voteIsEnd = false;
+                this.voteCountDownNum = this.achieveTime;
                 var that = this;
                 var updateCounts= 0;
+                var sendCount = 1;
                 if (this.voteIsStart && !this.voteIsEnd) {
                     this.curTimer = setInterval(() => {
                         if (that.voteCountDownNum - new Date().getTime() > 0) {
@@ -535,26 +560,30 @@
                             this.initFormate(curTime);
                             this.initFormate(curTime);
                             updateCounts++;
+                            sendCount++;
                         }
                         else {
                             that.voteIsEnd = true;
-                            clearInterval(curTime);
+                            clearInterval(this.curTimer);
                         }
                     }, 1000);
                 }
-                this.updateVoteCount();
             },
 
-            updateVoteCount(){
+            getAllVoteCount(){
                 util.hy_request({
-                    service: 'backVoteCount',
+                    service: 'getAllCount',
                     method: 'GET',
                     param:{
                         flagId: this.flagId
                     }
                 }).then(res => {
-                    this.supportVoteCount = res.support_count;
-                    this.objectVoteCount = res.object_count;
+                    this.supportCount = res.support_count;
+                    this.objectCount = res.object_count;
+                    var all = {
+                        supportCount: this.supportCount,
+                        objectCount: this.objectCount
+                    };
                 })
             },
 
@@ -565,9 +594,18 @@
             },
 
             getAnchorMsg() {
+                hyExt.context.getStreamerInfo().then(streamerInfo => {
+                    this.anchorNick = streamerInfo.streamerNick
+                }).catch(err => {
+                    hyExt.logger.warn('获取主播信息失败', err)
+                })
+            },
+
+            getAnchorMsgAgain() {
                 var that = this;
                 hyExt.context.getUserInfo().then(userInfo => {
-                    that.anchorMsg = userInfo;
+                    that.userNick = userInfo.userNick;
+                    that.userAvatar = userInfo.userAvatarUrl;
                 }).catch(err => {
                     hyExt.logger.warn('获取用户信息失败');
                 });
@@ -583,12 +621,11 @@
 
                 }).then(res => {
                     if (res.status == 200) {
-                        this.prizeList = res.prize_list;
-                        if (!res.res) {
-                            this.showNone = 1;
+                        this.winList = res.data;
+                        if(!res.data){
+                            this.showNone = 1
                         }
-                        hyExt.observer.emit('prize_draw_finish',JSON.stringify(res.prize_list));
-                        console.log(JSON.stringify(res.prize_list));
+                        hyExt.observer.emit('prize_draw_finish',JSON.stringify(res.data));
                         this.settingState = CONFIG.settingStateMap.end;
                     }
                 })
@@ -599,18 +636,17 @@
                 util.hy_request({
                     service: 'prizeDraw',
                     param: {
-                        success: 0,
+                        success: 2,
                         flagId: this.flagId
                     }
 
                 }).then(res => {
                     if (res.status == 200) {
-                        this.prizeList = res.prize_list;
-                        if (!res.res) {
-                            console.log("re", res);
-                            this.showNone = 1;
+                        this.winList = res.data;
+                        if(!res.data){
+                            this.showNone = 1
                         }
-                        hyExt.observer.emit('prize_draw_finish',JSON.stringify(res.prize_list));
+                        hyExt.observer.emit('prize_draw_finish',JSON.stringify(res.data));
                         this.settingState = CONFIG.settingStateMap.end;
                     }
                 })
@@ -619,7 +655,7 @@
             configNextFlag() {
                 this.settingState = CONFIG.settingStateMap.unstart;
                 Object.assign(this.$data, this.$options.data());
-                this.getAnchorMsg();
+                this.getAnchorMsgAgain();
                 this.getAnchorHistory();
             }
 
@@ -779,6 +815,7 @@
     .prize-container {
         display: flex;
         flex-direction: column;
+        font-size: 14px;
     }
 
     .add-btn {
@@ -798,7 +835,7 @@
         color: black;
 
         .bd-callout {
-            padding: 5px;
+            padding: 2px 5px 2px 5px;
             margin-top: 3px;
             margin-bottom: 8px;
             border: 1px solid #eee;
@@ -831,7 +868,7 @@
                 span {
                     color: black;
                     font-weight: 600;
-                    font-size: 15px;
+                    font-size: 13px;
                     white-space: nowrap;
                 }
             }
@@ -850,14 +887,57 @@
         .checkbox-style {
             color: white;
         }
+
+        .mode1-style{
+            color: rgb(240, 181, 9);
+            display: flex;
+            width: 280px;
+
+            .mode1-cha-style{
+                width: 100%;
+                font-size: 12px;
+            }
+        }
+
         .order-content-style {
 
-            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            margin-top: 15px;
+
+            .mode2-cha-style{
+                font-size: 12px;
+                width: 90%;
+                color: rgb(240, 181, 9);
+            }
+
             .order-input {
                 margin-top: 10px;
                 margin-left: 10px;
                 width: 90%;
             }
+
+            .commands-style{
+                display: flex;
+                flex-direction: row;
+                margin: 5px 0 0 12px;
+
+                .command-style{
+                    width: 75%;
+                }
+
+                .command-delete{
+                    display: flex;
+                    align-items: center;
+                    background-color: white;
+                    border-radius: 5px;
+                    padding: 5px 10px 5px 10px;
+                    color: black;
+                    font-weight: 300;
+                    margin-left: 10px;
+                }
+            }
+
         }
 
     }
@@ -903,7 +983,7 @@
         justify-content: center;
 
         .live_info_show {
-            font-size: 20px;
+            font-size: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -922,6 +1002,7 @@
                 justify-content: center;
                 width: 100%;
                 margin-bottom: 20px;
+                margin-top: 40px;
 
                 .support-container{
                     display: flex;
@@ -931,12 +1012,12 @@
                     border-right: 1px solid #f5d090;
 
                     .support-sp{
-                        font-size: 22px;
+                        font-size: 15px;
                         font-weight: 500;
                     }
 
                     .support-count{
-                        font-size: 20px;
+                        font-size: 15px;
                         font-weight: 300;
                     }
 
@@ -949,12 +1030,12 @@
                     padding-left: 30px;
 
                     .object-sp{
-                        font-size: 22px;
+                        font-size: 15px;
                         font-weight: 500;
                     }
 
                     .object-count{
-                        font-size: 20px;
+                        font-size: 15px;
                         font-weight: 300;
                     }
                 }
@@ -994,20 +1075,24 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            width: 90%;
+            width: 100%;
             font-size: 20px;
             font-weight: 600;
         }
 
+        .win-style{
+            font-size: 15px;
+        }
+
         .prize-header {
-            width: 90%;
+            width: 100%;
             margin: 0 auto;
             margin-top: 20px;
             padding-bottom: 10px;
             display: flex;
             flex-direction: row;
             justify-content: space-around;
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 300;
             border-bottom: 1px solid #f5d090;
         }
@@ -1018,7 +1103,7 @@
             display: flex;
             flex-direction: row;
             justify-content: space-around;
-            font-size: 17px;
+            font-size: 14px;
             font-weight: 300;
         }
 
@@ -1052,7 +1137,7 @@
 
             .table-title1{
                 width: 90%;
-                font-size: 18px;
+                font-size: 16px;
                 font-weight: 300;
                 text-align: center;
                 margin: 7px 0;
@@ -1082,7 +1167,7 @@
 
             .table-title2{
                 width: 100%;
-                font-size: 18px;
+                font-size: 16px;
                 font-weight: 300;
                 text-align: center;
                 margin: 7px 0;

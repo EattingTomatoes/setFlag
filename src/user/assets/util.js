@@ -4,76 +4,41 @@ import eventBus from './eventBus'
 const { extUuid, baseUrl, port } = CONFIG;
 
 var util = {
-    request(url,obj) {
-        obj = obj || {};
-        obj.methods = obj.methods.toUpperCase() || 'GET';
-        obj.async = obj.async || true;
-        obj.data = obj.data || {};
+    hy_request({service, method='GET', param={}}) {
+        var requestParam = {};
+        if(method=='GET'){
+            var url = baseUrl + `/${service}?`;
+            for(var key in param){
+                url += `${key}=${param[key]}&`;
+            }
+            requestParam = {
+                header:{},
+                url: url,
+                data: {},
+                dataType: 'json',
+                method: method,
+            };
+        }
 
-        return new Promise(function (resolve, reject) {
-            let xhr = null; //判断是否支持ajax，else一般给IE浏览器
-            if(window.XMLHttpRequest){
-                xhr = new XMLHttpRequest()
-            }
-            else {
-                xhr = new ActiveXObject("Microsoft.XMLHTTP")
-            }
-            let params = [];
-            //遍历请求参数对象，拼接请求参数
-            for(let param in obj.data){
-                params.push(param+'='+obj.data[param])
-            }
-            let requestData = params.join('&');
-            //请求类型
-            let requestType = obj.methods.toUpperCase();
-            console.log(requestType);
-            //如果是GET请求
-            if(requestType == 'GET'){
-                xhr.open(requestType,url+'?'+requestData,obj.async);
-                xhr.send();
-            }
-            else if(requestType == 'POST'){
-                xhr.open(requestType,url,obj.async);
-                xhr.setRequestHeader("Content-type",
-                    "application/x-www-form-urlencoded;charset=utf-8")
-                xhr.send(requestData)
-            }
+        else if(method=='POST'){
+            requestParam = {
+                header:{},
+                url: baseUrl + `/${service}`,
+                data: param,
+                dataType: 'json',
+                method: method,
+            };
+        }
 
-            xhr.onreadystatechange = function () {
-                if(xhr.readyState==4 && xhr.status==200){
-                    resolve(JSON.parse(xhr.responseText),this)
-                }
-                else if(xhr.status!=200){
-                    reject({code:400,message:"请求失败"},this)
-                }
-            }
-        })
-    },
-    hy_request({service, method = 'GET', param = {}}) {
-        var requestParam = {
-            host: baseUrl,
-            param: param,
-            port: port,
-            httpMethod: method,
-            path: `/api/hysetflag/${service}`
-        };
-        console.log('请求',requestParam);
 
         return new Promise((resolve, reject) => {
-            hyExt.requestEbs(requestParam)
-                .then(({ res, msg, ebsResponse }) => {
-                    if(res == 0) {
-                        const { entity, statusCode, header } = ebsResponse;
-
-                        if(statusCode != 200 || !entity) {
-                            console.log('接口异常', res, msg, ebsResponse);
-                        }
-
-                        console.log('响应', res, entity, statusCode, header);
-                        const resp = typeof entity == 'string' ? JSON.parse(entity) : entity;
-                        resolve(resp);
-                    }else{
-                        reject(new Error(msg));
+            hyExt.request(requestParam)
+                .then(({ data, statusCode, header }) => {
+                    if(statusCode==200){
+                        resolve(data)
+                    }
+                    else if(statusCode!=200){
+                        reject(statusCode)
                     }
                 }).catch(err => {
                 reject(err);
@@ -99,7 +64,6 @@ var util = {
         }
 
         let curtime = '';
-        console.log(time);
         curtime = time.split(':');
 
         let curArr = '';
@@ -123,7 +87,29 @@ var util = {
         eventBus.$emit('showToast', text);
     },
 
+    showMention(text){
+        eventBus.$emit('showMention', text);
+    },
 
+    giftGetRandomNum(luckNum,init_count1){
+        var ranNum = Math.random();
+        if(ranNum<init_count1){
+            return true;
+        }
+        else {
+            return false;
+        }
+    },
+
+    barrageGetRandomNum(luckNum,init_count2){
+        var ranNum = Math.random();
+        if(ranNum<init_count2){
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 };
 
 export default util;

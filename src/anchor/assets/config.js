@@ -5,7 +5,7 @@
     maxSettingActionTime: 24,
     defaultActionTime: 3,
     extUuid: '',
-    baseUrl: isDebug ? '' : 'weixiaoyuan.xyz',
+    baseUrl: isDebug ? '' : 'https://www.weixiaoyuan.xyz/api/setflag',
     port: isDebug ? 17050 : 80,
     settingStateMap: {
         unstart: 0,

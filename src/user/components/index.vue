@@ -20,7 +20,7 @@
                 <a-tabs defaultActiveKey="1" :tabBarStyle="styleObject">
                 <a-tab-pane key="1">
                     <span style="font-size: 20px" slot="tab">
-                        <span style="margin-right: 10px;">主播Flag</span>
+                        <span>主播Flag</span>
                         <img @click="showRule" style="width: 20px; height: 20px;" src="./../assets/img/q_icon.png">
                     </span>
                     <div v-if="showUnstartPanel" style="color: #f5d090">
@@ -29,8 +29,8 @@
                     <div v-if="showLivingPanel" style="color: #f5d090">
                         <div class="panel-main">
                             <div class="flag-content">
-                                <span style="font-size: 20px; font-weight: 300">{{lastVote.anchor_name}}说:</span>
-                                <span>{{flagConfig.flagContent}}</span>
+                                <span style="font-size: 20px; font-weight: 300">{{anchorNick}}说:</span>
+                                <span>{{content}}</span>
                             </div>
                             <div>
                                 <img @click="showMoreFun" class="other-fun" src="./../assets/img/model_icon.png"/>
@@ -40,12 +40,13 @@
 
                         <div class="vote-container">
                             <div class="time-stamp">
-                                <time-stamp :prize-msg="flagConfig.choosedOptions?flagConfig.choosedOptions:[]"
-                                            :object-count="objectVoteCount" :support-count="supportVoteCount"></time-stamp>
+                                <time-stamp :prize-msg="prizes?prizes:[]"
+                                            :object-count="objectCount" :support-count="supportCount"></time-stamp>
                             </div>
                             <div class="show-action-time">
                                 <p v-if="voteIsStart&&!voteIsEnd">距结束还剩
                                     <span>{{hours}}</span> 时 <span>{{minute}}</span> 分 <span>{{second}}</span> 秒</p>
+                                <p v-if="mode1Up" style="color: red">最后一分钟加速模式</p>
                                 <p v-if="voteIsEnd" style="color:red">投票已经结束，等待主播开奖！！</p>
                             </div>
 
@@ -54,14 +55,14 @@
                         <div class="vote-options">
                             <div class="support-vote">
                                     <span style="color: #f5d090">支持票|&nbsp;{{supportOption}}
-                                        &nbsp;({{getSupportCount}}票)</span>
+                                        &nbsp;({{supportCount}}票)</span>
                                 <div class="options">
                                     <vote-progress type="support" :value="getSpportPecent"></vote-progress>
                                 </div>
                             </div>
                             <div class="object-vote">
                                     <span style="color: #f5d090">反对票|&nbsp;{{objectOption}}
-                                        &nbsp;({{getObjectCount}}票)</span>
+                                        &nbsp;({{objectCount}}票)</span>
                                 <div class="options">
                                     <vote-progress type="object" :value="getObectPecent"></vote-progress>
                                 </div>
@@ -79,15 +80,15 @@
                         </div>
                     </div>
                     <div v-if="showResultPanel" style="color: #f5d090">
-                        <div class="none-prize" v-if="prizeList.length==0">
+                        <div class="none-prize" v-if="winList.length==0">
                             <div class="non-span">暂时无人中奖</div>
                         </div>
                         <div v-else class="table-style" style="align-items: center; justify-content: center">
                             <div class="table-list1">
                                 <div class="table-title1" style="font-size: 25px"><span>中奖名单</span></div>
                                 <div class="table-record">
-                                    <div class="record-list" style="font-size: 20px" v-for="item in prizeList" v-bind:key="">
-                                        <span class="sp-luck">欧皇</span>{{item.user_name}}
+                                    <div class="record-list" style="font-size: 20px" v-for="item in winList" v-bind:key="">
+                                        <span class="sp-luck">欧皇</span>{{item.user_nick}}
                                     </div>
                                 </div>
                             </div>
@@ -104,23 +105,23 @@
                             <div class="table-title1"><span>历史记录</span></div>
                             <div class="table-record">
                                 <div class="record-list" v-for="item in anchorRecord" v-bind:key="">
-                                    {{item.flagContent}}
+                                    {{item.content}}
                                 </div>
                             </div>
                         </div>
                         <div class="table-list2">
                             <div class="table-title2"><span>是否成功</span></div>
                             <div class="table-record">
-                                <div class="record-list" v-for="item in recordState" v-bind:key="">
-                                    <span :class="{fail: item==0}">
-                                        {{item==0?'失败':'成功'}}
+                                <div class="record-list" v-for="item in anchorRecord" v-bind:key="">
+                                    <span :class="{fail: item.finish_state==2}">
+                                        {{item.finish_state==2?'失败':'成功'}}
                                     </span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </a-tab-pane>
-            </a-tabs>
+                </a-tabs>
             </div>
         </div>
 
@@ -139,11 +140,11 @@
                     <li class="q-li">Q: 关于票的使用</li>
                     <li class="a-li">所有获得的票只能用于本场使用哦~本场过后剩余的票数全部失效！</li>
                 </ul>
-                <a-button @click="showRule">我已了解</a-button>
+                <a-button class="know-bt" @click="showRule">我已了解</a-button>
             </div>
         </div>
-
         <toast></toast>
+        <mention></mention>
     </div>
 </template>
 
@@ -154,10 +155,11 @@
     import VoteProgress from "./voteProgress";
     import ARadioGroup from "ant-design-vue/es/radio/Group";
     import Toast from "../../user/components/toast";
+    import Mention from "./mention";
 
     export default {
         name: 'index',
-        components: {Toast, ARadioGroup, VoteProgress, TimeStamp},
+        components: {Mention, Toast, ARadioGroup, VoteProgress, TimeStamp},
         props: {
             //主播端传过来的data
             curdata: {
@@ -168,7 +170,6 @@
         data() {
             return {
                 styleObject:CONFIG.tabs,
-                ops: CONFIG.ops,
                 isStart: false,
                 isEnd: false,
                 curTimer: null,
@@ -179,62 +180,65 @@
                 second: '',
                 settingState: CONFIG.settingStateMap.liveInfo,
                 showRuleToast: false,
-                userInfo: null,
                 isShowSpport:false,
                 isShowObject:false,
-                supportOption:'',
-                objectOption: '',
                 moreFuntions: false,
+                anchorNick: '',
+                init_count1: 0.05,
+                init_count2: 0.01,
+                luckNum1: 0,
+                luckNum2: 0,
+                mode1:false,
+                mode2:false,
+                mode1Up: false,
+                mode2Up: false,
+                barProba: CONFIG.initBarrageProba,
+                preProba: CONFIG.initPresentProba,
 
                 /*主播配置项*/
-                flagConfig:{},
                 voteIsStart: false,
                 voteIsEnd: false,
                 voteCountDownNum: 0,
-                prizeList:[],
+                content:'',
+                supportOption:'',
+                objectOption:'',
+                achieveTime:'',
+                voteState:0,
+                prizes:[],
+                mode:[],
+                command:[],
+                winList:[],
 
                 /*用户配置项*/
                 keepVotes: 0,  //用户拥有的票
-                objectVoteCount: 0, //支持票数量
-                supportVoteCount: 0, //反对票数量
+                objectCount: 0, //支持票数量
+                supportCount: 0, //反对票数量
                 lastVote: {}, //上次投票结果
-                thisVote: {}, //这一次投票的内容
                 flagId: "",
                 flagRecords: [1,2,3,4],
                 isScribed: 0,
+                presentCount:0,
+                barrageCount:0,
                 anchorRecord: [],
-                recordState: []
+                userNick:'',
+                userAvatar:''
 
-            }
-        },
-        watch: {
-            time() {
-                if (this.time) {
-                    clearInterval(this.curTimer);
-                    this.initTime();
-                }
-            },
-            curdata() {
-                if (this.time) {
-                    clearInterval(this.curTimer);
-                    this.initTime();
-                }
             }
         },
         created() {
             hyExt.onLoad(() => {
+                this.getUserInfo(); //用户信息授权
+                this.getAnchorInfo();
                 this.getLastVoteResult();
                 this.getAnchorHistory();
                 this.registerListener();
             });
 
             hyExt.onLeaveForeground(()=>{
-                this.onLoadUserVote();
+                this.onUpdateUserVote();
             });
-
-            this.getUserInfo(); //用户信息授权
-
         },
+
         computed: {
             showUnstartPanel() {
                 return this.settingState == CONFIG.settingStateMap.unstart;
@@ -249,36 +253,36 @@
             },
 
             getSpportPecent() {
-                var total = this.supportVoteCount + this.objectVoteCount;
+                var total = this.supportCount + this.objectCount;
                 if (!total) return 0;
-                var takePecent = this.supportVoteCount / total;
+                var takePecent = this.supportCount / total;
                 var intTake = takePecent * 100;
                 return intTake;
             },
 
             getObectPecent() {
-                var total = this.supportVoteCount + this.objectVoteCount;
+                var total = this.supportCount + this.objectCount;
                 if (!total) return 0;
-                var takePecent = this.objectVoteCount / total;
+                var takePecent = this.objectCount / total;
                 var intTake = takePecent * 100;
                 return intTake;
-            },
-
-            getObjectCount() {
-                return this.objectVoteCount;
-            },
-
-            getSupportCount(){
-                return this.supportVoteCount;
             }
         },
         methods: {
 
+            getAnchorInfo(){
+                hyExt.context.getStreamerInfo().then(streamerInfo => {
+                    this.anchorNick = streamerInfo.streamerNick
+                }).catch(err => {
+                    hyExt.logger.warn('获取主播信息失败', err)
+                })
+            },
+
             getUserInfo() {
                 hyExt.context.getUserInfo()
                     .then(userInfo => {
-                        this.userInfo = userInfo;
-                        console.log('用户信息', userInfo);
+                        this.userNick = userInfo.userNick;
+                        this.userAvatar = userInfo.userAvatarUrl;
                     });
             },
 
@@ -288,8 +292,7 @@
                     method: 'GET'
                 }).then(res =>{
                     if(res.status==200){
-                        this.anchorRecord = res.data;
-                        this.recordState = res.state;
+                        this.anchorRecord = res.history;
                     }
                 })
             },
@@ -300,49 +303,55 @@
                     questParam = {
                         service: 'getVoteResult',
                         param: {
-                            flagId: flagId
+                            flagId: flagId,
                         }
                     }
                 }
                 else {
                     questParam = {
                         service: 'getVoteResult',
+                        param: {
+                        }
                     }
                 }
 
+
                 util.hy_request(questParam)
                     .then(res => {
-                        if (res.status === 200 && res.data.length) {
+                        if (res.status === 200 && res.data) {
+                            this.content = res.data.content;
+                            this.achieveTime = res.data.achieve_time;
+                            this.supportOption = res.data.support_option;
+                            this.objectOption = res.data.object_option;
+                            this.prizes = JSON.parse(res.data.prizes);
+                            this.mode = JSON.parse(res.data.mode);
+                            this.command = JSON.parse(res.data.command);
+                            this.supportCount = res.data.flag_vote.support_count;
+                            this.objectCount = res.data.flag_vote.object_count;
+                            this.flagId = res.data.id;
+                            this.winList = res.data.flag_vote.win_list;
+                            this.voteState = res.data.flag_vote.vote_state;
+                            this.mode1 = this.mode.find(item => item=='1');
+                            this.mode2 = this.mode.find(item => item=='2');
 
-                            var configOptions = JSON.parse(res.data[0]['config_content']);
-                            this.lastVote = res.data[0];
-                            this.flagConfig = configOptions;
-                            this.flagId = this.lastVote.flag_id;
-                            this.supportVoteCount = res.data[1].support_count;
-                            this.objectVoteCount = res.data[1].object_count;
-                            this.supportOption = configOptions.voteContent.support;
-                            this.objectOption = configOptions.voteContent.object;
-
-                            //如果未完成的话
-                            if(!this.lastVote.success){
-                                this.getUserstate();
-                            };
-
-                            if(res.hasResult) {
-                                //如果正在进行中
-                                if(res.data[0].flag_state==0){
-                                    this.settingState = CONFIG.settingStateMap.liveInfo;
-                                    this.startVoteTimeCountDown();
+                            //如果未完成
+                            if(!res.data.finish_state){
+                                this.settingState = CONFIG.settingStateMap.liveInfo;
+                                if(res.data.flag_vote.vote_state==0){
+                                    this.onLoadUserVote();
                                 }
-
-                                //如果已完成
-                                else if(res.data[0].flag_state==1){
-                                    this.prizeList = JSON.parse(this.lastVote.prize_list);
-                                    this.settingState = CONFIG.settingStateMap.end;
-                                }
+                                this.startVoteTimeCountDown();
                             }
-                            else{
-                                this.settingState = CONFIG.settingStateMap.unstart;
+
+                            //如果已完成
+                            else {
+                                if(res.data.win_list){
+                                    this.winList = JSON.parse(res.data.win_list);
+                                }
+                                else {
+                                    this.winList = []
+                                }
+                                this.settingState = CONFIG.settingStateMap.end;
                             }
 
                         }
@@ -352,38 +361,41 @@
                     })
             },
 
+
             registerListener() {
 
                 hyExt.observer.on('start_flag', res => {
-
                     res = JSON.parse(res);
-
-                    this.flagConfig = res;
-                    this.flagId = res.flagId;
-
-                    this.supportVoteCount = 0;
-                    this.objectVoteCount = 0;
-
+                    Object.assign(this.$data, this.$options.data());
+                    this.getUserInfo(); //用户信息授权
+                    this.getAnchorInfo();
+                    this.getAnchorHistory();
+                    this.getLastVoteResult(res.flagId);
                     //倒计时开始， 用户可以开始设置
                     this.settingState = CONFIG.settingStateMap.liveInfo;
                     this.startVoteTimeCountDown();
                 });
 
+
                 hyExt.observer.on('prize_draw_finish', res => {
-
                     res = JSON.parse(res);
-
+                    this.winList = res;
                     this.settingState = CONFIG.settingStateMap.end;
 
                 });
 
+                hyExt.observer.on('get_vote_count',res => {
+                    res = JSON.parse(res);
+                    this.supportCount = res.support_count;
+                    this.objectCount = res.object_count;
+                });
+
                 hyExt.context.on('subscribeSubmit', isSubscribed => {
-                    console.log(isSubscribed);
                     if(isSubscribed==1&&this.isScribed==0){
-                        console.log("成功订阅");
-                        util.showToast("恭喜您血赚一张票~");
+                        util.showMention("恭喜您血赚一张票");
                         this.isScribed=1;
                         this.keepVotes++;
+                        this.onUpdateUserVote();
                     }
                     else {
                         util.showToast("不能重复订阅哦~")
@@ -391,39 +403,35 @@
                 });
 
                 hyExt.context.on('barrageSubmit', barrageInfo => {
-                    console.log(barrageInfo);
+                    if(this.voteState) return;
+                    if(util.barrageGetRandomNum(CONFIG.initBarrageProba,this.barProba)){
+                        this.barProba=CONFIG.initBarrageProba;
+                        this.keepVotes+=CONFIG.initGetVoteFromBa[this.luckNum1];
+                        util.showMention("弹幕丛中获得"+CONFIG.initGetVoteFromBa[this.luckNum1]+"票~");
+                        this.onUpdateUserVote();
+                    }
+                    else {
+                        this.barProba+=CONFIG.increaseBaProba;
+                        util.showToast("弹幕后面一点东西都没")
+                    }
+                    this.barrageCount++;
                 });
 
-                hyExt.context.on('giftSubmit', barrageInfo => {
-                    console.log(barrageInfo)
+                hyExt.context.on('giftSubmit', presentInfo => {
+                    if(this.voteState) return;
+                    if(util.giftGetRandomNum(CONFIG.initPresentProba,this.preProba)){
+                        this.preProba=CONFIG.initPresentProba;
+                        this.keepVotes+=CONFIG.initGetVoteFromPe[this.luckNum2];
+                        util.showMention("哇，在礼物下面发现了"
+                                +CONFIG.initGetVoteFromPe[this.luckNum2]+"票~");
+                        this.onUpdateUserVote();
+                    }
+                    else {
+                        this.preProba+=CONFIG.increasePeProba;
+                        util.showToast("礼物下面一点东西都没有")
+                    }
+                    this.presentCount++;
                 });
-            },
-
-
-            getUserstate(){
-                //发起网络请求时去服务器端找数据缓存
-                util.hy_request({
-                    service: 'getUserMsg',
-                    method:'GET',
-                    param:{
-                        flagId: this.flagId
-                    }
-                }).then(res=>{
-                    //如果用户已经在表中有记录  场景：用户重新打开小程序时主播正在运行
-                    if(res.status==200 && res.data){
-                        this.keepVotes = res.data[0].keep_votes;
-                        this.isScribed = res.data[0].is_scribed;
-                    }
-                    else if(res.status==200 && res.data==''){
-                        this.keepVotes = 1;
-                    }
-                    //如果用户在表中没记录 场景：用户第一次打开小程序时且主播正在运行
-                    hyExt.context.getSubscribeInfo().then(isScribed => {
-                        if(!this.isScribed&&isScribed){
-                            this.keepVotes++;
-                        }
-                    })
-                })
             },
 
             confirmSupportVote() {
@@ -447,14 +455,21 @@
                     //上传用户的资料，选票,
                     param: {
                         flagId: this.flagId,
-                        userNick: this.userInfo.userNick,
+                        userNick: this.userNick,
                         voteState: 1
                     }
                 }).then(res => {
                     if (res.status == 200) {
-                        util.showToast("投票成功");
-                        that.supportVoteCount++;
-                        that.keepVotes--;
+                        if(res.keep_votes==-1){
+                            util.showToast("投票失败，请重新投票");
+                        }
+                        else{
+                            this.keepVotes = res.keep_votes;
+                            util.showToast("投票成功");
+                            that.supportCount++;
+                            that.isShowSpport = true;
+                            that.isShowObject = false;
+                        }
                     }
                     else {
                         util.showToast("投票失败，请重新投票");
@@ -481,14 +496,21 @@
                     //上传用户的资料，选票,
                     param: {
                         flagId: this.flagId,
-                        userNick: this.userInfo.userNick,
-                        voteState: 2
+                        userNick: this.userNick,
+                        voteState: 2,
                     }
                 }).then(res => {
                     if (res.status == 200) {
-                        util.showToast("投票成功");
-                        that.objectVoteCount++;
-                        that.keepVotes--;
+                        if(res.keep_votes==-1){
+                            util.showToast("投票失败，请重新投票");
+                        }
+                        else{
+                            this.keepVotes = res.keep_votes;
+                            util.showToast("投票成功");
+                            that.objectCount++;
+                            that.isShowSpport = false;
+                            that.isShowObject = true;
+                        }
                     }
                     else {
                         util.showToast("投票失败，请重新投票");
@@ -498,42 +520,58 @@
 
             startVoteTimeCountDown() {
                 this.voteIsStart = true;
-                this.voteCountDownNum = this.flagConfig.acheiveTime;
+                this.voteIsEnd = false;
+                this.voteCountDownNum = this.achieveTime;
                 var that = this;
                 var updateCounts = 0;
                 if (this.voteIsStart && !this.voteIsEnd) {
 
                     this.curTimer = setInterval(() => {
-                        if (that.voteCountDownNum - new Date().getTime() > 0) {
+                        if (that.achieveTime - new Date().getTime() > 0) {
+                            if((that.voteCountDownNum - new Date().getTime())/1000<=600){
+                                if(this.mode1){this.mode1Up=true;}
+                                this.openLastMinuteModel();
+                            }
                             var curTime = util.SecondToData(that.voteCountDownNum);
-                            //实现前台论查询模式，后面优化需要换成websocket，减少性能消耗。
-                            if(updateCounts%5==0)
-                                this.updateVoteCount();
                             this.initFormate(curTime);
                             this.initFormate(curTime);
                             updateCounts++;
                         }
                         else {
                             that.voteIsEnd = true;
-                            clearInterval(curTime);
+                            clearInterval(this.curTimer);
+                            that.saveVoteState();
+                            return;
                         }
                     }, 1000);
+
                 }
 
-                console.log(this.voteCountDownNum);
             },
 
-            updateVoteCount(){
-                util.hy_request({
-                    service: 'backVoteCount',
-                    method: 'GET',
-                    param:{
-                        flagId: this.flagId
-                    }
-                }).then(res => {
-                    this.supportCount = res.support_count;
-                    this.objectCount = res.object_count;
-                })
+            openLastMinuteModel(){
+                var that = this;
+                var modeUp = Math.random();
+                if(modeUp<0.4){
+                    that.luckNum1 = parseInt(7*Math.random());
+                    that.luckNum2 = parseInt(8*Math.random());
+                }
+                else {
+                    that.luckNum1 = 1;
+                    that.luckNum2 = 1;
+                }
+            },
+
+            saveVoteState(){
+                if(!this.voteState){
+                    util.hy_request({
+                        service: 'saveVoteState',
+                        method: 'GET',
+                    }).then(res=>{
+                        if(res.status!=200){
+                        }
+                    })
+                }
             },
 
             initFormate(curTime) {
@@ -576,15 +614,47 @@
                 }
 
                 util.hy_request({
-                    service: 'saveUserState',
+                    service: 'getUserState',
+                    method: 'GET',
+                    param: {
+                        flagId: this.flagId,
+                        isScribed: this.isScribed,
+                        keepVotes: this.keepVotes,
+                        barrageCount: this.barrageCount,
+                        presentCount: this.presentCount
+                    }
+                }).then(res => {
+                    if(res.status==200){
+                        if(res.data.is_scribed==0){
+                            hyExt.context.getSubscribeInfo().then(isSubscribed => {
+                                if(isSubscribed){
+                                    this.isScribed = 1;
+                                    this.keepVotes++;
+                                    this.onUpdateUserVote();
+                                }
+                            })
+                        }
+                        this.isScribed = res.data.is_scribed;
+                        this.keepVotes = res.data.keep_votes;
+                        this.barrageCount = res.data.barrage_count;
+                        this.presentCount = res.data.present_count;
+                    }
+                })
+            },
+
+            onUpdateUserVote(){
+
+                util.hy_request({
+                    service: 'updateUserState',
                     method: 'POST',
                     param: {
                         flagId: this.flagId,
                         isScribed: this.isScribed,
                         keepVotes: this.keepVotes,
+                        barrageCount: this.barrageCount,
+                        presentCount: this.presentCount
                     }
                 }).then(res => {
-                    console.log(res);
                 })
             },
 
@@ -596,11 +666,13 @@
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped lang="scss">
+<style lang="scss">
 
 
     .index {
         color: #f5d090;
+
+
 
         .bg_title {
 
@@ -696,7 +768,13 @@
     }
 
     .show-action-time {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
         margin: 0 auto;
+        p{
+        }
     }
 
     .panel-main {
@@ -976,6 +1054,11 @@
                 font-size: 15px;
             }
 
+            .know-bt{
+                width: 70%;
+                margin: 10px auto;
+            }
+
             ul{
                 list-style: none;
                 width: 90%;
@@ -984,14 +1067,15 @@
                     margin-left: -30px;
                 }
                 .q-li{
-                    font-size: 15px;
+                    font-size: 14px;
                     font-weight: 600;
                     margin: 10px 0 2px -30px;
                 }
                 .a-li{
                     margin-left: -15px;
+                    font-size: 12px;
                     letter-spacing: 1px;
-                    font-weight: 300;
+                    font-weight: 400;
                 }
             }
 

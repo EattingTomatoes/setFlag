@@ -4,13 +4,21 @@
         <div class="main_wrapper">
             <p class="title">添加选项</p>
             <div class="content-wrapper">
-                <div>投票数<input class="vote-style" v-model="votesCount" type="text" placeholder="填写票数"/></div>
-                <div>抽奖项<input class="prize-style" v-model="prizeType" type="text" placeholder="如:送出100元"/></div>
+                <div style="padding-bottom: 20px">
+                    <span style="color: black;">达到票数</span>
+                    <input class="vote-style" v-model="votesCount" type="text" placeholder="如:20"/></div>
                 <div>
-                    数量
-                    <select v-model="prizeCount" class="select-style">
-                        <option v-for="n in 30">{{n}}</option>
-                    </select>
+                    <span style="color: black;">送出奖品</span>
+                    <input class="prize-style" v-model="prizeType" type="text" placeholder="如:送出千年之狐"/></div>
+                <div class="count-container">
+                    <label style="color: black; width: 72px">奖品数量</label>
+                    <div class="wrapper">
+                        <a-icon type="minus" class="time-icon" @click="reduceCount"></a-icon>
+                        <p class="time">
+                            {{prizeCount}}份
+                        </p>
+                        <a-icon type="plus" class="time-icon" @click="addCount"/>
+                    </div>
                 </div>
             </div>
             <div class="ok-btn" @click="saveOption">完成</div>
@@ -44,6 +52,10 @@
             eventBus.$off('showDialog');
         },
         props:['choosedOptionList'], //已选择的选项
+        watch:{
+
+
+        },
         methods: {
 
             hideDialog(){
@@ -86,6 +98,17 @@
                 });
 
                 this.hideDialog();
+            },
+
+            reduceCount() {
+                if (this.prizeCount <= 0) {
+                    return;
+                }
+                this.prizeCount -= 1;
+            },
+
+            addCount(){
+                this.prizeCount += 1;
             }
         }
     }
@@ -100,7 +123,44 @@
         left: 0;
         bottom: 0;
         right: 0;
-        z-index: 0;
+        z-index: 998;
+
+        .count-container{
+            display: flex;
+            flex-direction: row;
+            vertical-align: middle;
+            margin-top: 20px;
+            padding-bottom: 20px;
+            margin-right: 50px;
+
+            .time {
+                padding: 2px 7px;
+                margin: 0 5px;
+                border-left: 1px solid #cccccc;
+                border-right: 1px solid #cccccc;
+                letter-spacing: 1px;
+                height: 25px;
+            }
+
+            .wrapper {
+                display: flex;
+                flex-direction: row;
+                border-radius: 5px;
+                padding: 0 10px;
+                height: 30px;
+                align-items: center;
+                vertical-align: middle;
+                color: black;
+                background-color: #f2f2f2;
+                border: 1px solid #cccccc;
+
+                .time-icon {
+                    font-size: 18px;
+                    color: #747575;
+                }
+            }
+        }
+
 
         .mask{
             position: absolute;
@@ -118,13 +178,13 @@
             left: 48%;
             transform: translateX(-50%);
             z-index: 2;
-            width: 270px;
+            width: 250px;
             height: 300px;
             background: #fff;
             border-radius: 5px;
 
             .title{
-                height: 20px;
+                height: 50px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -144,7 +204,6 @@
                 div{
                     display: flex;
                     flex-direction: row;
-                    padding-bottom: 20px;
                     vertical-align: middle;
                     align-items: center;
 

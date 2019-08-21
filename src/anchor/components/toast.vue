@@ -38,5 +38,6 @@
         color: #fff;
         background: rgba(0,0,0,0.7);
         border-radius: 4px;
+        z-index: 999;
     }
 </style>

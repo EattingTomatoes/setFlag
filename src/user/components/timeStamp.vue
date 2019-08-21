@@ -61,7 +61,6 @@
                         fontSize: '20px',
                         transform: 'scaleX(' + this.totalCount/this.finalCount + ')'
                     };
-                    console.log(this.prizeMsg);
                     return this.processedPrizeContent;
                 }
 

@@ -4,34 +4,43 @@ import eventBus from './eventBus';
 const { extUuid, baseUrl, port } = CONFIG;
 
 var util = {
-    hy_request({service, method = 'GET', param = {}}) {
-        var requestParam = {
-            header:{'x-header': 'foo'},
-            host: baseUrl,
-            param: {extUuid, ...param},
-            port: port,
-            httpMethod: method,
-            path: `/api/hysetflag/${service}`
+    hy_request({service, method='GET', param={}}) {
+        var requestParam = {};
+        if(method=='GET'){
+            var url = baseUrl + `/${service}?`;
+            for(var key in param){
+                url += `${key}=${param[key]}&`;
+            }
+            requestParam = {
+                header:{},
+                url: url,
+                data: {},
+                dataType: 'json',
+                method: method,
+            };
         }
 
-        console.log('请求', requestParam);
+        else if(method=='POST'){
+            requestParam = {
+                header:{},
+                url: baseUrl + `/${service}`,
+                data: param,
+                dataType: 'json',
+                method: method,
+            };
+        }
+
 
         return new Promise((resolve, reject) => {
-            hyExt.requestEbs(requestParam)
-            .then(({ res, msg, ebsResponse }) => {
-                if(res == 0) {
-                    const { entity, statusCode, header } = ebsResponse;
-                    if(statusCode != 200 || !entity) {
-                        console.log('接口异常', res, msg, ebsResponse);
+            hyExt.request(requestParam)
+                .then(({ data, statusCode, header }) => {
+                    if(statusCode==200){
+                        resolve(data)
                     }
-
-                    console.log('响应', res, entity, statusCode, header);
-                    const resp = typeof entity == 'string' ? JSON.parse(entity) : entity;
-                    resolve(resp);
-                }else{
-                    reject(new Error(msg));
-                }
-            }).catch(err => {
+                    else if(statusCode!=200){
+                        reject(statusCode)
+                    }
+                }).catch(err => {
                 reject(err);
             })
         })
@@ -81,7 +90,6 @@ var util = {
         }
 
         let curtime = '';
-        console.log(time);
         curtime = time.split(':');
 
         let curArr = '';
