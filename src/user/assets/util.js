@@ -91,8 +91,9 @@ var util = {
         eventBus.$emit('showMention', text);
     },
 
-    giftGetRandomNum(luckNum,init_count1){
+    giftGetRandomNum(init_count1){
         var ranNum = Math.random();
+        console.log("取得随机数为",ranNum)
         if(ranNum<init_count1){
             return true;
         }
@@ -101,8 +102,9 @@ var util = {
         }
     },
 
-    barrageGetRandomNum(luckNum,init_count2){
+    barrageGetRandomNum(init_count2){
         var ranNum = Math.random();
+        console.log("取得随机数为",ranNum)
         if(ranNum<init_count2){
             return true;
         }
@@ -110,6 +112,8 @@ var util = {
             return false;
         }
     }
+
+
 };
 
 export default util;

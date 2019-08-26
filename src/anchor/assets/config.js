@@ -1,7 +1,7 @@
  const isDebug = false;
 
  var config = {
-    minSettingActionTime: 0.5,
+    minSettingActionTime: 1,
     maxSettingActionTime: 24,
     defaultActionTime: 3,
     extUuid: '',

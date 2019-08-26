@@ -190,7 +190,7 @@
                     <span>中奖用户名称</span>
                 </div>
                 <div class="prize-list" v-for="winMsg in winList">
-                    <span>{{winMsg.user.user_id}}</span>
+                    <span>{{winMsg.uid}}</span>
                     <span>{{winMsg.user_nick}}</span>
                 </div>
                 <div v-if="showNonePrize" class="no-prize">
@@ -253,9 +253,10 @@
 
                 //提交主播配置项
                 anchorNick:'',
+                anchorUrl:'',
                 supportOption: CONFIG.voteContent.support,
                 objectOption: CONFIG.voteContent.object,
-                limitedTime: 1,
+                limitedTime: 0.1,
                 achevieTime: 0,
                 content: '',
                 choosedOptions: [],
@@ -336,7 +337,7 @@
                 var questParam = {};
                 if (flagId) {
                     questParam = {
-                        service: 'getVoteResult',
+                        service: 'getConfig',
                         param: {
                             flagId: flagId
                         }
@@ -344,7 +345,7 @@
                 }
                 else {
                     questParam = {
-                        service: 'getVoteResult',
+                        service: 'getConfig',
                     }
                 }
 
@@ -359,13 +360,14 @@
                             this.prizes = JSON.parse(res.data.prizes);
                             this.mode = JSON.parse(res.data.mode);
                             this.command = JSON.parse(res.data.command);
-                            this.supportCount = res.data.flag_vote.support_count;
-                            this.objectCount = res.data.flag_vote.object_count;
                             this.flagId = res.data.id;
-                            this.voteState = res.data.flag_vote.vote_state;
-                            this.winList = res.data.flag_vote.win_list;
+
 
                             if(res.data.config_state){
+                                this.supportCount = res.data.flag_vote.support_count;
+                                this.objectCount = res.data.flag_vote.object_count;
+                                this.voteState = res.data.flag_vote.vote_state;
+                                this.winList = res.data.flag_vote.win_list;
                                 if(!res.data.finish_state){
                                     this.settingState = CONFIG.settingStateMap.liveInfo;
                                     this.startVoteTimeCountDown();
@@ -374,6 +376,7 @@
                                     this.settingState = CONFIG.settingStateMap.end;
                                 }
                             }
+
                         }
                     })
             },
@@ -401,14 +404,14 @@
             },
 
             reducelimitedTime() {
-                if (this.limitedTime <= CONFIG.minSettinglimitedTime) {
+                if (this.limitedTime <= CONFIG.minSettingActionTime) {
                     return;
                 }
                 this.limitedTime -= 0.5;
             },
 
             addlimitedTime() {
-                if (this.limitedTime >= CONFIG.maxSettinglimitedTime) {
+                if (this.limitedTime >= CONFIG.maxSettingActionTime) {
                     return;
                 }
                 this.limitedTime += 0.5;
@@ -475,9 +478,9 @@
                         command: JSON.stringify(this.command),
                     }
                 }).then(res => {
-                    console.log(res)
                     if (res.status == 200) {
                         this.saveAllOptions = true;
+                        this.flagId = res.data;
                         util.showToast('已成功保存');
                     } else {
                         util.showToast(res.msg);
@@ -508,13 +511,16 @@
                     }
                 }
 
-                // this.startReadyTimeCountDown();
+                console.log(this.userAvatar);
+                console.log(this.userNick);
 
                 util.hy_request({
                     service: 'startFlag',
                     method: 'POST',
                     param: {
-                        flagId: this.flagId
+                        flagId: this.flagId,
+                        anchorNick: this.userNick,
+                        anchorUrl: this.userAvatar
                     }
                 }).then(res => {
                     if (res.status === 200) {
@@ -558,7 +564,6 @@
                         if (that.voteCountDownNum - new Date().getTime() > 0) {
                             var curTime = util.SecondToData(that.voteCountDownNum);
                             this.initFormate(curTime);
-                            this.initFormate(curTime);
                             updateCounts++;
                             sendCount++;
                         }
@@ -595,7 +600,8 @@
 
             getAnchorMsg() {
                 hyExt.context.getStreamerInfo().then(streamerInfo => {
-                    this.anchorNick = streamerInfo.streamerNick
+                    this.anchorNick = streamerInfo.streamerNick;
+                    this.anchorUrl = streamerInfo.streamerAvatarUrl
                 }).catch(err => {
                     hyExt.logger.warn('获取主播信息失败', err)
                 })
@@ -1188,6 +1194,10 @@
                     color: deepskyblue;
                     height: 100%;
 
+                }
+
+                .fail{
+                    color: #ed6521;
                 }
             }
         }

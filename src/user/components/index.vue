@@ -2,7 +2,7 @@
     <div class="index">
         <!--小程序名称，不用动-->
         <div class="bg_title">
-            <img class="title" src="./../assets/img/bg_01.gif"/>
+            <div class="title"></div>
         </div>
         <!--面板切换-->
         <div class="live-panel">
@@ -14,6 +14,7 @@
                     <span @click="toScribe" class="get-sp">订阅</span>
                     <span @click="toGift" class="get-sp">送礼</span>
                     <span @click="toSendBarrage" class="get-sp">发弹幕</span>
+                    <span @click="toShowRank" class="get-sp">排行榜</span>
                 </div>
             </div>
             <div class="tabs-panel">
@@ -143,6 +144,70 @@
                 <a-button class="know-bt" @click="showRule">我已了解</a-button>
             </div>
         </div>
+
+        <div v-if="showRank" class="rank-container">
+            <div class="rank-bg">
+                <div class="back" @click="toShowRank"></div>
+                <div class="title">排行榜</div>
+                <div class="rank-top1" v-if="topThree[0]['nick_name']!=''">
+                    <span>No.1</span>
+                    <div v-if="topThree.length>0" class="top1">
+                        <div class="top1-icon"></div>
+                        <div class="top1-url">
+                            <img class="img" :src="topThree[0]['avatar_url']" />
+                        </div>
+                        <div class="user-name">
+                            <span>{{topThree[0]['nick_name']}}</span>
+                        </div>
+                    </div>
+                    <span class="user-flags">{{topThree[0]['flag_num']}}个/
+                        {{topThree[0]['success_rate']*100}}%</span>
+                </div>
+                <div class="rank-top2" v-if="topThree[1]['nick_name']!=''">
+                    <span>No.2</span>
+                    <div v-if="topThree.length>=1" class="top2">
+                        <div class="top2-url">
+                            <img :src="topThree[1]['avatar_url']" />
+                        </div>
+                        <div class="user-name">
+                            <span>{{topThree[1]['nick_name']}}</span>
+                        </div>
+                    </div>
+                    <span class="user-flags">{{topThree[1]['flag_num']}}个/
+                        {{topThree[1]['success_rate']*100}}%</span>
+                </div>
+                <div class="rank-top3" v-if="topThree[2]['nick_name']!=''">
+                    <span>No.3</span>
+                    <div class="top3">
+                        <div class="top3-url">
+                            <img :src="topThree[2]['avatar_url']" />
+                        </div>
+                        <div class="user-name">
+                            <span>{{topThree[2]['nick_name']}}</span>
+                        </div>
+                    </div>
+                    <span class="user-flags">{{topThree[2]['flag_num']}}个/
+                        {{topThree[2]['success_rate']*100}}%</span>
+                </div>
+
+                <div class="rank-live" v-for="flag in underwayFlags">
+                    <div>
+                        <div class="rank-user">
+                            <img class="img" style="width: 18%" :src="flag['anchor']['avatar_url']" />
+                            <div class="user-style" style="width: 30%; margin-left: 10px">
+                                <span class="rank-msg">房号:{{flag['anchor']['room_id']}}</span>
+                                <span class="rank-content">{{flag['anchor']['nick_name']}}</span>
+                            </div>
+                            <div class="user-style" style="width: 52%">
+                                <span class="rank-msg">正在直播</span>
+                                <span class="rank-content">{{flag['content']}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <toast></toast>
         <mention></mention>
     </div>
@@ -188,12 +253,17 @@
                 init_count2: 0.01,
                 luckNum1: 0,
                 luckNum2: 0,
+                role: 'U',
                 mode1:false,
                 mode2:false,
                 mode1Up: false,
                 mode2Up: false,
                 barProba: CONFIG.initBarrageProba,
                 preProba: CONFIG.initPresentProba,
+                rankMsg: [],
+                showRank: false,
+                topThree: CONFIG.topThree,
+                underwayFlags: [],
 
                 /*主播配置项*/
                 voteIsStart: false,
@@ -228,14 +298,10 @@
         created() {
             hyExt.onLoad(() => {
                 this.getUserInfo(); //用户信息授权
-                this.getAnchorInfo();
-                this.getLastVoteResult();
-                this.getAnchorHistory();
-                this.registerListener();
-            });
-
-            hyExt.onLeaveForeground(()=>{
-                this.onUpdateUserVote();
+                this.getAnchorInfo(); //获取主播信息
+                this.getLastVoteResult(); //获取最近一次结果
+                this.getAnchorHistory(); //获取主播历史记录
+                this.registerListener(); //注册监听按钮
             });
         },
 
@@ -268,13 +334,22 @@
                 return intTake;
             }
         },
+
+        watch:{
+            time(){
+                if(this.voteIsEnd){
+                    clearInterval(this.curTimer);
+                }
+            }
+        },
         methods: {
 
             getAnchorInfo(){
                 hyExt.context.getStreamerInfo().then(streamerInfo => {
-                    this.anchorNick = streamerInfo.streamerNick
+                    this.anchorNick = streamerInfo.streamerNick;
+                    this.roomId = streamerInfo.streamerRoomId;
+                    this.getRankMsg();
                 }).catch(err => {
-                    hyExt.logger.warn('获取主播信息失败', err)
                 })
             },
 
@@ -292,6 +367,7 @@
                     method: 'GET'
                 }).then(res =>{
                     if(res.status==200){
+                        console.log(res)
                         this.anchorRecord = res.history;
                     }
                 })
@@ -318,6 +394,7 @@
 
                 util.hy_request(questParam)
                     .then(res => {
+                        this.role = res.role;
                         if (res.status === 200 && res.data) {
                             this.content = res.data.content;
                             this.achieveTime = res.data.achieve_time;
@@ -340,13 +417,14 @@
                                 if(res.data.flag_vote.vote_state==0){
                                     this.onLoadUserVote();
                                 }
+                                console.log(res)
                                 this.startVoteTimeCountDown();
                             }
 
                             //如果已完成
                             else {
-                                if(res.data.win_list){
-                                    this.winList = JSON.parse(res.data.win_list);
+                                if(res.data.flag_vote['win_list']){
+                                    this.winList = JSON.parse(res.data.flag_vote['win_list']);
                                 }
                                 else {
                                     this.winList = []
@@ -395,7 +473,7 @@
                         util.showMention("恭喜您血赚一张票");
                         this.isScribed=1;
                         this.keepVotes++;
-                        this.onUpdateUserVote();
+                        this.onUpdateUserVote(1);
                     }
                     else {
                         util.showToast("不能重复订阅哦~")
@@ -404,14 +482,15 @@
 
                 hyExt.context.on('barrageSubmit', barrageInfo => {
                     if(this.voteState) return;
-                    if(util.barrageGetRandomNum(CONFIG.initBarrageProba,this.barProba)){
+                    if(Math.random()<this.barProba){
                         this.barProba=CONFIG.initBarrageProba;
-                        this.keepVotes+=CONFIG.initGetVoteFromBa[this.luckNum1];
-                        util.showMention("弹幕丛中获得"+CONFIG.initGetVoteFromBa[this.luckNum1]+"票~");
-                        this.onUpdateUserVote();
+                        this.keepVotes+=1;
+                        util.showMention("弹幕丛中获得1张票~");
+                        this.onUpdateUserVote(1);
                     }
                     else {
                         this.barProba+=CONFIG.increaseBaProba;
+                        console.log("当前的弹幕",this.barProba)
                         util.showToast("弹幕后面一点东西都没")
                     }
                     this.barrageCount++;
@@ -419,12 +498,25 @@
 
                 hyExt.context.on('giftSubmit', presentInfo => {
                     if(this.voteState) return;
-                    if(util.giftGetRandomNum(CONFIG.initPresentProba,this.preProba)){
+                    console.log("当前概率为",this.preProba)
+                    if(Math.random()<this.preProba){
                         this.preProba=CONFIG.initPresentProba;
-                        this.keepVotes+=CONFIG.initGetVoteFromPe[this.luckNum2];
-                        util.showMention("哇，在礼物下面发现了"
-                                +CONFIG.initGetVoteFromPe[this.luckNum2]+"票~");
-                        this.onUpdateUserVote();
+                        var luckNum2 = 0;
+                        if(this.mode1Up){
+                            luckNum2 = CONFIG.getPresentLuckNum(presentInfo.itemName)*2;
+                            this.keepVotes+=luckNum2;
+                            util.showMention("哇，在礼物下面发现了"
+                                +luckNum2+"票~");
+                        }
+                        else {
+                            luckNum2 = CONFIG.getPresentLuckNum(presentInfo.itemName);
+                            console.log("中奖票数",luckNum2);
+                            this.keepVotes+=luckNum2;
+                            console.log("当前票数",this.keepVotes);
+                            util.showMention("哇，在礼物下面发现了"
+                                +luckNum2+"票~");
+                        }
+                        this.onUpdateUserVote(luckNum2);
                     }
                     else {
                         this.preProba+=CONFIG.increasePeProba;
@@ -432,6 +524,35 @@
                     }
                     this.presentCount++;
                 });
+            },
+
+            getRankMsg(){
+                util.hy_request({
+                    service: 'getRankMsg',
+                    method: 'GET',
+                }).then(res=>{
+                    console.log(res)
+                    for (var i=0; i<res.top_three.length; i++){
+                        this.topThree[i] = res.top_three[i];
+                        if(this.topThree[i]['nick_name'].length>4){
+                            this.topThree[i]['nick_name'] = this.topThree[i]['nick_name'].slice(0,4) + "...";
+                            this.topThree[i]['success_rate'] = this.topThree[i]['success_rate'].toFixed(2);
+                        }
+                    }
+
+
+                    for (var i=0; i<res.underway_flags.length; i++){
+                        this.underwayFlags[i] = res.underway_flags[i];
+                        var anchor = this.underwayFlags[i]['anchor']
+                        if(anchor['nick_name'].length>5){
+                            this.underwayFlags[i]['anchor']['nick_name'] = anchor['nick_name'].slice(0,5) + "...";
+                        }
+                        if(this.underwayFlags[i]['content'].length>7){
+                            this.underwayFlags[i]['content'] =
+                                this.underwayFlags[i]['content'].slice(0,7) + "...";
+                        }
+                    }
+                })
             },
 
             confirmSupportVote() {
@@ -533,13 +654,12 @@
                                 this.openLastMinuteModel();
                             }
                             var curTime = util.SecondToData(that.voteCountDownNum);
-                            this.initFormate(curTime);
-                            this.initFormate(curTime);
+                            that.initFormate(curTime);
                             updateCounts++;
                         }
                         else {
                             that.voteIsEnd = true;
-                            clearInterval(this.curTimer);
+                            clearInterval(that.curTimer);
                             that.saveVoteState();
                             return;
                         }
@@ -553,8 +673,8 @@
                 var that = this;
                 var modeUp = Math.random();
                 if(modeUp<0.4){
-                    that.luckNum1 = parseInt(7*Math.random());
-                    that.luckNum2 = parseInt(8*Math.random());
+                    that.luckNum1 = parseInt(5*Math.random());
+                    that.luckNum2 = parseInt(6*Math.random());
                 }
                 else {
                     that.luckNum1 = 1;
@@ -568,10 +688,9 @@
                         service: 'saveVoteState',
                         method: 'GET',
                     }).then(res=>{
-                        if(res.status!=200){
-                        }
                     })
                 }
+                this.voteState = 1;
             },
 
             initFormate(curTime) {
@@ -604,9 +723,14 @@
                 })
             },
 
+            toShowRank(){
+                this.showRank = !this.showRank;
+            },
+
             showRule(){
                 this.showRuleToast = !this.showRuleToast;
             },
+
 
             onLoadUserVote(){
                 if(this.voteIsEnd){
@@ -630,7 +754,7 @@
                                 if(isSubscribed){
                                     this.isScribed = 1;
                                     this.keepVotes++;
-                                    this.onUpdateUserVote();
+                                    this.onUpdateUserVote(1);
                                 }
                             })
                         }
@@ -642,7 +766,9 @@
                 })
             },
 
-            onUpdateUserVote(){
+            onUpdateUserVote(voteNum = 0){
+
+                console.log(this.achieveTime);
 
                 util.hy_request({
                     service: 'updateUserState',
@@ -650,11 +776,14 @@
                     param: {
                         flagId: this.flagId,
                         isScribed: this.isScribed,
-                        keepVotes: this.keepVotes,
+                        keepVotes: voteNum,
                         barrageCount: this.barrageCount,
                         presentCount: this.presentCount
                     }
                 }).then(res => {
+                    if(res.status=='200'){
+                        this.keepVotes = res.keep_votes;
+                    }
                 })
             },
 
@@ -679,10 +808,15 @@
             width: 100%;
             background-color: #173b32;
             top: 0;
+            display: flex;
 
             .title {
-                width: auto;
-                height: auto;
+                background-image: url("./../assets/img/bg_01.gif");
+                background-size: cover;
+                width: 100%;
+                height: 217px;
+                /*width: auto;*/
+                /*height: auto;*/
                 max-height: 100%;
                 max-width: 100%;
                 z-index: 0;
@@ -852,7 +986,8 @@
     .table-style{
         display: flex;
         flex-direction: row;
-        width: 100%;
+        width: 95%;
+        margin-bottom: 20px;
 
         .table-list1{
             display: flex;
@@ -912,7 +1047,7 @@
                     justify-content: center;
                     color: deepskyblue;
                     height: 100%;
-
+                    font-weight: 300;
                 }
             }
         }
@@ -1030,6 +1165,207 @@
         padding-right: 20px;
         color: #abd6c4;
         text-decoration: white;
+    }
+
+
+    .rank-container{
+        position: absolute;
+        width: 80%;
+        top: 60px;
+        left: 38px;
+        z-index: 999;
+        box-shadow: 1px 1px 10px 1px rgba(0, 0, 0, 0.38);
+
+        .rank-bg {
+            background: url("./../assets/img/rank_01.png");
+            background-size: cover;
+            height: 550px;
+
+            .back {
+                background-image: url("./../assets/img/back.png");
+                background-size: cover;
+                width: 20px;
+                height: 20px;
+                position: absolute;
+                left: 20px;
+                top: 35px;
+            }
+
+            .title{
+                position: absolute;
+                font-size: 30px;
+                color: white;
+                left: 34%;
+                top: 20px;
+            }
+
+            .user-name {
+                margin-top: 10px;
+                text-align: center;
+            }
+
+            .rate-num {
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+
+            .user-flags {
+                font-size: 20px;
+                color: #d86b65;
+            }
+
+            .rank-top1{
+                position: absolute;
+                width: 110px;
+                top: 73px;
+                left: 98px;
+                color: white;
+                font-size: 30px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+
+                .top1{
+                    margin-top: 16px;
+                    width: 70%;
+                    margin-left: 5px;
+                    display: flex;
+                    flex-direction: column;
+                    font-size: 15px;
+                    color: black;
+
+                    .top1-icon{
+                        background-image: url("./../assets/img/top_icon.png");
+                        background-size: cover;
+                        height: 80px;
+                        z-index: 999;
+                    }
+
+                    .top1-url{
+                        position: absolute;
+                        top: 85px;
+                        left: 28px;
+                        width: 54px;
+                        height: 51px;
+                        border-radius: 26px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+
+                }
+            }
+
+            .rank-top2{
+                position: absolute;
+                width: 100px;
+                top: 108px;
+                left: 0;
+                color: white;
+                font-size: 26px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+
+                .top2{
+                    margin-top: 10px;
+                    width: 75%;
+                    margin-left: 5px;
+                    display: flex;
+                    flex-direction: column;
+                    font-size: 13px;
+                    color: black;
+                }
+
+                .top2-url{
+                    position: absolute;
+                    top: 75px;
+                    left: 23px;
+                    width: 54px;
+                    height: 51px;
+                    border-radius: 26px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+            }
+
+            .rank-top3{
+                position: absolute;
+                width: 100px;
+                top: 108px;
+                right: 0;
+                color: white;
+                font-size: 26px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+
+                .top3{
+                    margin-top: 10px;
+                    width: 75%;
+                    margin-left: 5px;
+                    display: flex;
+                    flex-direction: column;
+                    font-size: 13px;
+                    color: black;
+                }
+
+                .top3-url{
+                    position: absolute;
+                    top: 75px;
+                    left: 23px;
+                    width: 54px;
+                    height: 51px;
+                    border-radius: 26px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+            }
+
+            .rank-live {
+                display: flex;
+                flex-direction: column;
+                position: relative;
+                top:280px;
+                z-index: 999;
+
+                .rank-user{
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    width: 95%;
+                    margin-top: 10px;
+                    padding-bottom: 10px;
+                    margin-left: 8px;
+                    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+                }
+
+                .user-style{
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+
+                .rank-msg{
+                    color: #cccccc;
+                }
+
+                .rank-content {
+                    font-size: 13px;
+                    color: black;
+                }
+            }
+
+            .img {
+                width: 50px;
+                height: 50px;
+                border-radius: 30px;
+            }
+        }
+
     }
 
     .rule-toast{

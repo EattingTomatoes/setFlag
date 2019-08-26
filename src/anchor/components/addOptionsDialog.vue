@@ -101,7 +101,7 @@
             },
 
             reduceCount() {
-                if (this.prizeCount <= 0) {
+                if (this.prizeCount <= 1) {
                     return;
                 }
                 this.prizeCount -= 1;

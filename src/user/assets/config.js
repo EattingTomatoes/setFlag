@@ -4,13 +4,14 @@ var config = {
     minSettingActionTime: 3,
     maxSettingActionTime: 8,
     defaultActionTime: 3,
-    initGetVoteFromBa:[1,11,22,33,44,55,66],
-    initGetVoteFromPe:[1,18,28,38,48,58,55,188],
-    initBarrageProba:0.5,
-    initPresentProba:0.5,
-    increaseBaProba:0.5,
-    increasePeProba:0.5,
+    initGetVoteFromBa:[1,2,3],
+    initGetVoteFromPe:[1,18,28,38,48,58,66],
+    initBarrageProba:0.1,
+    initPresentProba:0.2,
+    increaseBaProba:0.1,
+    increasePeProba:0.1,
     extUuid: '',
+    HYurl: 'https://www.huya.com/',
     baseUrl: isDebug ? '' : 'https://www.weixiaoyuan.xyz/api/setflag',
     port: isDebug ? 17050 : 80,
     settingStateMap: {
@@ -39,6 +40,12 @@ var config = {
         }
     },
 
+    topThree: [
+        {nick_name:'',avatar_url:''},
+        {nick_name:'',avatar_url:''},
+        {nick_name:'',avatar_url:''}
+    ],
+
     tabs: {
         fontSize: '20px',
         color: '#ab9765',
@@ -48,6 +55,18 @@ var config = {
         marginRight: '30px',
         paddingLeft: '10px',
         paddingRight: '10px'
+    },
+
+    getPresentLuckNum:function (itemName) {
+        if (itemName=='虎粮'||itemName=='荧光棒'||itemName=='宝剑'){
+            return 1;
+        }
+        else if(itemName=='血瓶'||itemName=='奖杯'||itemName=='火锅'){
+            return 3;
+        }
+        else {
+            return 6;
+        }
     }
 };
 
